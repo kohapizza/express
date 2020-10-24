@@ -4,9 +4,10 @@
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE ViewPatterns      #-}
-import           Data.Text.Lazy (Text)
+
 import qualified Data.Text.Lazy as T
 import qualified Data.Map as Map
+import System.IO.Unsafe (unsafePerformIO)
 import qualified Lightblue as L
 import Yesod
 
@@ -84,9 +85,10 @@ getExamples1R num =
     then notFound
     else do
            let s = eithertostring (sentenceLookup num sentences)
-           -- mathMLtext <- parseSentence 16 2 s
-           defaultLayout [whamlet|<h2> 例文#{num}：#{s}|]
-
+               m = unsafePerformIO $ L.parseSentence 16 2 s
+           defaultLayout [whamlet|<h2> 例文#{num}：#{s}
+                                    #{m}
+                                    |]
 
 
 main :: IO ()
