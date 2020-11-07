@@ -67,22 +67,15 @@ executables:
   express:
     main: app.hs
     source-dirs: app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - express
+    ghc-options: ["-threaded", "-rtsopts", "-with-rtsopts=-N"]
+    dependencies: express
     when:
     - condition: flag(library-only)
       buildable: false
-  express2:
-    main: app2.hs
+  express3:
+    main: app3.hs
     source-dirs: app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+    ghc-options: ["-threaded", "-rtsopts", "-with-rtsopts=-N"]
     dependencies:
     - express
     - lightblue
