@@ -116,21 +116,22 @@ instance Widgetizable Node where
   widgetize node = case daughters node of
     [] ->
       [whamlet|
-        <table class=.frac>
-          <tr class=.numer>
-            <td>#{pf node}
-          <tr class=.denom>
-            <td>#{show $ cat node}
+        <table border="1" rules="rows" frame="void" cellpadding="5">
+          <tr>
+            <td align="center">#{pf node}
+          <tr>
+            <td align="center">#{show $ cat node}
         |]
-    dtrs -> 
+    dtrs ->
+      let len = length dtrs in
       [whamlet|
-        <table class=.frac>
-          <tr class=.numer>
+        <table border="1" rules="rows" frame="void" cellpadding="5">
+          <tr>
             $forall dtr <- dtrs
-              <td>^{widgetize dtr}
+              <td align="center" valign="bottom">^{widgetize dtr}
               <td>&nbsp;
-          <tr class=.denom>
-            <td>#{show $ cat node}
+          <tr>
+            <td align="center" colspan=${len}>#{show $ cat node}
         |]
 
 
