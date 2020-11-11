@@ -131,7 +131,7 @@ instance Widgetizable Node where
               <span .rule>LEX
         |]
     dtrs ->
-      let len = length dtrs in
+      let len = (length dtrs)*2 in
       [whamlet|
         <table>
           <tr>
@@ -142,7 +142,7 @@ instance Widgetizable Node where
                     <td align="center" valign="bottom">^{widgetize dtr}
                     <td>&nbsp;
                 <tr>
-                  <td align="center" colspan=${len}>#{show $ cat node}
+                  <td align="center" colspan=#{len}>#{show $ cat node}
             <td valign="baseline">
               <span .rule>#{show $ rs node}
         |]
