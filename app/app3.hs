@@ -100,6 +100,9 @@ getExamples1R num =
                  border-left: 0px;
                  border-right: 0px;
                  align: center;
+               .rule
+                 position: relative;
+                 top: 10px;
                |]
              mapM_ widgetize m
 
@@ -116,22 +119,32 @@ instance Widgetizable Node where
   widgetize node = case daughters node of
     [] ->
       [whamlet|
-        <table border="1" rules="rows" frame="void" cellpadding="5">
+        <table>
           <tr>
-            <td align="center">#{pf node}
-          <tr>
-            <td align="center">#{show $ cat node}
+            <td valign="baseline">
+              <table border="1" rules="rows" frame="void" cellpadding="5">
+                <tr>
+                  <td align="center">#{pf node}
+                <tr>
+                  <td align="center">#{show $ cat node}
+            <td valign="baseline">
+              <span .rule>LEX
         |]
     dtrs ->
       let len = length dtrs in
       [whamlet|
-        <table border="1" rules="rows" frame="void" cellpadding="5">
+        <table>
           <tr>
-            $forall dtr <- dtrs
-              <td align="center" valign="bottom">^{widgetize dtr}
-              <td>&nbsp;
-          <tr>
-            <td align="center" colspan=${len}>#{show $ cat node}
+            <td valign="baseline">
+              <table border="1" rules="rows" frame="void" cellpadding="5">
+                <tr>
+                  $forall dtr <- dtrs
+                    <td align="center" valign="bottom">^{widgetize dtr}
+                    <td>&nbsp;
+                <tr>
+                  <td align="center" colspan=${len}>#{show $ cat node}
+            <td valign="baseline">
+              <span .rule>#{show $ rs node}
         |]
 
 
