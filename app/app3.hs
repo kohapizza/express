@@ -9,7 +9,8 @@ import qualified Data.Text.Lazy as T
 import qualified Data.Map as Map
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Lightblue as L
-import Parser.CCG (Node(..))
+import Interface.Text (SimpleText(..))
+import Parser.CCG (Node(..),RuleSymbol(..))
 import Yesod
 
 data App = App
@@ -144,8 +145,9 @@ instance Widgetizable Node where
                 <tr>
                   <td align="center" colspan=#{len}>#{show $ cat node}
             <td valign="baseline">
-              <span .rule>#{show $ rs node}
+              <span .rule>^{widgetize $ rs node}
         |]
 
-
-
+instance Widgetizable RuleSymbol where
+  widgetize rs = [whamlet|#{toText rs}|]
+ 
