@@ -125,7 +125,7 @@ class Widgetizable a where
   widgetize :: a -> Widget
 
 instance Widgetizable T.Text where
-  widgetize = toWidget
+  widgetize = toWidget 
 
 instance Widgetizable Node where
   widgetize node = case daughters node of
