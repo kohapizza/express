@@ -15,7 +15,6 @@ function show(input1, input2){
         objID1.className = 'close';
         objID2.style.display = 'block';
         objID2.className = 'open';
-        click = false;
         changebtn(click, buttonID1);
         click = true;
     }

@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE ViewPatterns         #-}
 
+import qualified Data.Text as StrictT
 import qualified Data.Text.Lazy as T
 import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe --base
@@ -33,7 +34,7 @@ sentences :: SentenceMap
 sentences = Map.fromList
   [(1, "ああああ")
   ,(2, "いいいい")
-  ,(3, "うううう")
+  ,(3, "おはよう")
   ,(4, "僕は学生だ")
   ,(5, "私は猫と住みたい")
   ,(6, "犬が猫を追いかける")
@@ -90,33 +91,56 @@ getExamples1R num =
   if (num < 0 || num > 10) 
     then notFound
     else do
-           let s = eithertostring (sentenceLookup num sentences)
-               m = unsafePerformIO $ L.parseSentence' 16 2 s
-           defaultLayout $ do
-             toWidget [cassius|
-               .rule
-                 position: relative;
-                 top: 10px;
-               body
-                 font-size: 1em;
-               |]
-             --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
-             toWidget [julius|
-               MathJax.Hub.Config({
-                 tex2jax: {
-                   inlineMath: [['$','$'], ['\\(','\\)']],
-                   processEscapes: true
-                   },
-                 CommonHTML: { matchFontHeight: false },
-                 displayAlign: left,
-                 displayIndent: 2em
-                 });
-               MathJax.Hub.Config({
-                 'HTML-CSS': {
-                 availableFonts: [],
-                 preferredFont: null,webFont: 'Neo-Euler'}});
-               |]
-             mapM_ widgetize m
+      let s = eithertostring (sentenceLookup num sentences)
+          m = unsafePerformIO $ L.parseSentence' 16 2 s
+      defaultLayout $ do
+        toWidget [cassius|
+          .rule
+            position: relative;
+            top: 10px;
+          body
+            font-size: 1em;
+          .font-main
+            padding: 2px;
+          #btn1
+            margin-bottom: 4px;
+          |]
+        --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+        toWidget [julius|
+          MathJax.Hub.Config({
+            tex2jax: {
+              inlineMath: [['$','$'], ['\\(','\\)']],
+              processEscapes: true
+              },
+            CommonHTML: { matchFontHeight: false },
+            displayAlign: left,
+            displayIndent: 2em
+            });
+          MathJax.Hub.Config({
+            'HTML-CSS': {
+            availableFonts: [],
+            preferredFont: null,webFont: 'Neo-Euler'}});
+          |]
+        toWidget [julius|
+          function toggle(id){
+            var objID1 = document.getElementById( id + "layerA" );
+            var objID2 = document.getElementById( id + "layerB" );
+            var buttonID = document.getElementById( id + "button" );
+            if(objID1.className=='close') {
+              objID1.style.display = 'block';
+              objID1.className = 'open';
+              objID2.style.display = 'none';
+              objID2.className = 'close';
+              buttonID.innerHTML = "-";
+            }else{
+              objID1.style.display = 'none';
+              objID1.className = 'close';
+              objID2.style.display = 'block';
+              objID2.className = 'open';
+              buttonID.intterHTML = "+";
+            }};
+          |]
+        mapM_ widgetize $ take 1 m
 
 main :: IO ()
 main = warp 3000 App
@@ -143,22 +167,37 @@ instance Widgetizable Node where
             <td valign="baseline">
               <span .rule>LEX
         |]
-    dtrs ->
-      let len = (length dtrs)*2 in
+    dtrs -> do
+      let len = (length dtrs)*2
+      id <- newIdent
       [whamlet|
+        <div id=#{StrictT.concat [id, "layerA"]} style="display: block" class=open> hey
+        <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class=close> hoge
         <table>
           <tr>
             <td valign="baseline">
-              <table border="1" rules="rows" frame="void" cellpadding="5">
-                <tr>
-                  $forall dtr <- dtrs
-                    <td align="center" valign="bottom">^{widgetize dtr}
-                    <td>&nbsp;
-                <tr>
-                  <td align="center" colspan=#{len}>
-                    <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+              <div id=#{StrictT.concat [id, "layerA"]} style="display: block" class=open>
+                <table border="1" rules="rows" frame="void" cellpadding="5">
+                  <tr>
+                    $forall dtr <- dtrs
+                      <td align="center" valign="bottom">^{widgetize dtr}&nbsp;
+                  <tr>
+                    <td align="center" colspan=#{len}>
+                      <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+              <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class=close>
+                <table border="1" rules="rows" frame="void" cellpadding="5">
+                  <tr>
+                    <td>^{widgetize $ pf node}
+                  <tr>
+                    <td align="center" colspan=#{len}>
+                      <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
             <td valign="baseline">
-              <span .rule>^{widgetize $ rs node}
+              <table>
+                <tr>
+                  <td>
+                    <button type="button" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>-
+                <tr>
+                  <span .rule>^{widgetize $ rs node}
         |]
 
 instance Widgetizable RuleSymbol where
