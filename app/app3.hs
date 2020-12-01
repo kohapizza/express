@@ -171,8 +171,6 @@ instance Widgetizable Node where
       let len = (length dtrs)*2
       id <- newIdent
       [whamlet|
-        <div id=#{StrictT.concat [id, "layerA"]} style="display: block" class=open> hey
-        <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class=close> hoge
         <table>
           <tr>
             <td valign="baseline">
