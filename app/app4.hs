@@ -12,6 +12,7 @@ import qualified Data.Map as Map
 import qualified Data.Maybe as Maybe --base
 import System.IO.Unsafe (unsafePerformIO)
 import qualified Lightblue as L
+import Corpus.JSeM (JSeMData(..), fetchJSeMData)
 import Interface.Text (SimpleText(..))
 import Interface.TeX (Typeset(..))
 import Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
@@ -32,7 +33,7 @@ type SentenceMap = Map.Map Int Sentence
 
 sentences :: SentenceMap
 sentences = Map.fromList
-  [(1, "ああああ")
+  [(1, T.fromStrict $ hypothesis (jsemData!!2))
   ,(2, "いいいい")
   ,(3, "おはよう")
   ,(4, "僕は学生だ")
@@ -43,6 +44,9 @@ sentences = Map.fromList
   ,(9, "家にテレビがある")
   ,(10, "庭に花が咲く")
   ]
+
+jsemData :: [JSeMData]
+jsemData = unsafePerformIO fetchJSeMData
 
 sentenceLookup :: Int -> SentenceMap -> Either Sentence Sentence
 sentenceLookup number map = case Map.lookup number map of
