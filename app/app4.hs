@@ -18,12 +18,17 @@ import Interface.TeX (Typeset(..))
 import Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
 import Yesod
 import qualified Text.Julius as J
+import qualified JSeM as Js               --jsem
+--import qualified JSeM.XML as Js           --jsem
+import Control.Monad (forM_)           --base
+import qualified Corpus.JSeM as C
 
 data App = App
 
 mkYesod "App" [parseRoutes|
 / HomeR GET
 /examples/#Int Examples1R GET
+/jsem/#String JsemR GET
 |]
 
 --文探索
@@ -47,6 +52,30 @@ sentences = Map.fromList
 
 jsemData :: [JSeMData]
 jsemData = unsafePerformIO fetchJSeMData
+
+
+--Test：JSeMDataからjsem_id・premises・hypothesisをとったもの
+data Test = Test{
+     jsem_id_w    :: StrictT.Text,
+     answer_w     :: Js.JSeMLabel,
+     premises_w   :: [StrictT.Text],
+     hypothesis_w :: StrictT.Text
+} deriving (Eq, Show)
+
+
+emptyTest :: Test
+emptyTest = Test { jsem_id_w = "", answer_w = Js.OTHER, premises_w = [], hypothesis_w = "" } 
+
+jsemSearch :: [JSeMData] -> String -> Test
+jsemSearch jsemData sentID = do
+      case jsemData of
+          [] -> emptyTest
+          (JSeMData{C.jsem_id = i, C.link = l, C.description = d, C.answer = a, C.phenomena = ph, C.inference_type = it, C.note = n, C.premises = p, C.hypothesis = h}:xs) -> 
+                 if (i /= StrictT.pack sentID) 
+                     then jsemSearch xs sentID
+                     else Test{jsem_id_w = i, answer_w = a, premises_w = p, hypothesis_w = h}
+
+     
 
 sentenceLookup :: Int -> SentenceMap -> Either Sentence Sentence
 sentenceLookup number map = case Map.lookup number map of
@@ -74,6 +103,7 @@ getExamples1R num =
           m = unsafePerformIO $ L.parseSentence' 16 2 s
       defaultLayout $ do
         id <- newIdent
+        [whamlet|<h2> 文 #{num}：#{s}|]
         toWidget [cassius|
           .rule
             position: relative;
@@ -84,6 +114,23 @@ getExamples1R num =
             padding: 2px;
           #btn1
             margin-bottom: 4px;
+          h2
+            border-bottom: dashed 3px #ffd700
+            padding: 0.3em
+          .btn-design
+            color: #696969;
+            font-size: 18pt;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 10%;
+            border: 2px solid #c0c0c0;
+          .btn-design:hover
+            color: #696969;
+            font-size: 18pt;
+            text-align: center;
+            background: #f5f5f5;
+            border-radius: 10%;
+            border: 2px solid #c0c0c0;
           |]
         --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
         toWidget [julius|
@@ -106,6 +153,85 @@ getExamples1R num =
             }};
           |]
         mapM_ widgetize $ take 1 m
+
+
+getJsemR :: String -> Handler Html
+getJsemR var = do
+-- contentsはTest型
+  let contents = jsemSearch jsemData var
+-- preは[T.Text]型・hyはT.Text型
+  let ans = show $ answer_w contents
+      pre = map T.fromStrict (premises_w contents)
+      hy = T.fromStrict $ hypothesis_w contents
+  if( pre == [] || hy == "" ) 
+   then defaultLayout $ do [whamlet|<p><font color=red> Notfound.|]
+   else do
+     let psIOnode = map (L.parseSentence' 16 2) pre
+     let ps = head <$> map unsafePerformIO psIOnode
+     let m = unsafePerformIO $ L.parseSentence' 16 2 hy
+     defaultLayout $ do
+        id <- newIdent
+        [whamlet|<head> [#{var}] answer : #{ans}
+                 $forall pr <- pre
+                    <p>premise : <span class="pre-under">#{pr}
+                 <p>hypothesis : <span class="hy-under">#{hy}
+        |]
+        toWidget [cassius|
+          .rule
+            position: relative;
+            top: 10px;
+          body
+            font-size: 1em;
+          .font-main
+            padding: 2px;
+          #btn1
+            margin-bottom: 4px;
+          h2
+            border-bottom: dashed 3px #ffd700
+            padding: 0.3em
+          .btn-design
+            color: #696969;
+            font-size: 18pt;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 10%;
+            border: 2px solid #c0c0c0;
+          .btn-design:hover
+            color: #696969;
+            font-size: 18pt;
+            text-align: center;
+            background: #f5f5f5;
+            border-radius: 10%;
+            border: 2px solid #c0c0c0;
+          .pre-under
+            border-bottom: solid 3px #ffd700;
+          .hy-under
+            border-bottom: solid 3px #7fffd4;
+          |]
+        --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+        toWidget [julius|
+          function toggle(id){
+            var objID1 = document.getElementById( id + "layerA" );
+            var objID2 = document.getElementById( id + "layerB" );
+            var buttonID = document.getElementById( id + "button" );
+            if(objID1.className=='close') {
+              objID1.style.display = 'block';
+              objID1.className = 'open';
+              objID2.style.display = 'none';
+              objID2.className = 'close';
+              buttonID.innerHTML = "-";
+            }else{
+              objID1.style.display = 'none';
+              objID1.className = 'close';
+              objID2.style.display = 'block';
+              objID2.className = 'open';
+              buttonID.innerHTML = "+";
+            }};
+          |]
+-- psはpremises・mはhypothesis
+        mapM_ widgetize $ ps
+        mapM_ widgetize $ take 1 m
+
 
 myLayout :: Widget
 myLayout  = do
@@ -150,7 +276,7 @@ instance Widgetizable Node where
             <td valign="baseline">
               <table border="1" rules="rows" frame="void" cellpadding="5">
                 <tr>
-                  <td align="center">#{pf node}
+                  <td align="center" bgcolor="#ffd700">#{pf node}
                 <tr>
                   <td align="center">
                     <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
@@ -173,9 +299,9 @@ instance Widgetizable Node where
                     <td align="center" colspan=#{len}>
                       <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
               <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class="close">
-                <table border="1" rules="rows" frame="void" cellpadding="5" bgcolor="e0ffff">
+                <table border="2" rules="rows" cellpadding="5" border="3px solid #808080">
                   <tr>
-                    <td>^{widgetize $ pf node}
+                    <td bgcolor="#ffd700">^{widgetize $ pf node}
                   <tr>
                     <td align="center" colspan=#{len}>
                       <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
@@ -183,7 +309,7 @@ instance Widgetizable Node where
               <table border="1" rules="rows" frame="void" cellpadding="5">
                 <tr>
                   <td>
-                   <button type="button" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>-
+                   <button type="button" class="btn-design" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>-
                   <span .rule>^{widgetize $ rs node}
         |]
 
