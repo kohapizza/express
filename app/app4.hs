@@ -379,9 +379,8 @@ instance Widgetizable Feature where
                           <mtext>
                             #{toTeX f}
                           <mo>:
-                          <menclose notation='box'>
-                            <mn>#{T.pack (show i)}
-                               |]
+                            <mn>[#{T.pack (show i)}]
+                          |]
   widgetize (F f) = [whamlet|<mtext>#{toTeX f}|]
 
 instance Widgetizable [Feature] where
@@ -399,10 +398,10 @@ pmf2MathML :: T.Text -> Feature -> Maybe T.Text
 pmf2MathML label pmf = case (label,pmf) of
   (l,F [P])   -> Just $ T.concat ["+", l]
   (_,F [M])   -> Nothing -- if shared then Just $ T.concat ["{-}", l] else Nothing
-  (l,F [P,M]) -> Just $ T.concat ["&plusmn;", l]
-  (l,F [M,P]) -> Just $ T.concat ["&plusmn;", l]
+  (l,F [P,M]) -> Just $ T.concat ["±", l]
+  (l,F [M,P]) -> Just $ T.concat ["±", l]
   (l,SF i f)  -> do
                  x <- pmf2MathML l (F f)
-                 return $ T.concat [x, ":<menclose notation='box'><mn>", T.pack $ show i, "</mn></menclose>"]
+                 return $ T.concat [x, ":[", T.pack $ show i, "]"]
   _ -> return $ T.pack "Error: pmf2MathML"
 
