@@ -354,7 +354,7 @@ instance Widgetizable Cat where
                               |]
     T False i u -> [whamlet|<msub>
                               ^{widgetize' u}
-                              <mn>#{T.pack $ show i}
+                              <mn>:[#{T.pack $ show i}]
                               |]
     S (pos:(conj:pm)) -> let x = toText pm
                              nullx = T.null x in
@@ -392,14 +392,14 @@ instance Widgetizable Cat where
                                            <mo>(
                                            ^{widgetize c}
                                            <mo>)
-                                        |]
+                                           |]
 
 instance Widgetizable Feature where 
   widgetize (SF i f) = [whamlet|
                           <mtext>
                             #{toTeX f}
                           <mo>:
-                            <mn>[#{T.pack (show i)}]
+                          <mn>[#{T.pack (show i)}]
                           |]
   widgetize (F f) = [whamlet|<mtext>#{toTeX f}|]
 
