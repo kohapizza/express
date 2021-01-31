@@ -16,6 +16,8 @@ import Corpus.JSeM (JSeMData(..), fetchJSeMData)
 import Interface.Text (SimpleText(..))
 import Interface.TeX (Typeset(..))
 import Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
+import qualified DTS.UDTT as UDTT
+import qualified DTS.UDTTwithName as UDWN
 import Yesod
 import qualified Text.Julius as J
 import qualified JSeM as Js               --jsem
@@ -279,7 +281,13 @@ instance Widgetizable Node where
                   <td align="center" bgcolor="#ffd700">#{pf node}
                 <tr>
                   <td align="center">
-                    <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+                    <table border="0" cellpadding="0">
+                      <tr>
+                        <td align="center">
+                          <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+                      <tr>
+                        <td align="center">
+                          <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
               <span .rule>LEX
         |]
@@ -297,14 +305,26 @@ instance Widgetizable Node where
                       <td align="center" valign="bottom">^{widgetize dtr}&nbsp;
                   <tr>
                     <td align="center" colspan=#{len}>
-                      <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+                      <table border="0" cellpadding="0">
+                        <tr>
+                          <td align="center">
+                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+                        <tr>
+                          <td align="center">
+                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
               <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class="close">
                 <table border="2" rules="rows" cellpadding="5" border="3px solid #808080">
                   <tr>
                     <td bgcolor="#ffd700">^{widgetize $ pf node}
                   <tr>
                     <td align="center" colspan=#{len}>
-                      <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+                      <table border="0" cellpadding="0">
+                        <tr>
+                          <td align="center">
+                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
+                        <tr>
+                          <td align="center">
+                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
               <table border="1" rules="rows" frame="void" cellpadding="5">
                 <tr>
@@ -404,4 +424,189 @@ pmf2MathML label pmf = case (label,pmf) of
                  x <- pmf2MathML l (F f)
                  return $ T.concat [x, ":[", T.pack $ show i, "]"]
   _ -> return $ T.pack "Error: pmf2MathML"
+
+instance Widgetizable UDTT.Preterm where
+  widgetize = widgetize . UDTT.initializeIndex . (UDTT.fromDeBruijn [])
+
+instance Widgetizable UDWN.VarName where
+  widgetize (UDWN.VarName v i) =
+    [whamlet|
+      <msub>
+        <mi>#{T.singleton v}
+        <mn>#{T.pack (show i)}
+        |]
+
+instance Widgetizable UDWN.Preterm where
+  widgetize preterm = case preterm of
+    UDWN.Var vname -> widgetize vname
+    UDWN.Con cname -> [whamlet|<mtext>#{cname}|]
+    UDWN.Type -> [whamlet|<mi>type|]
+    UDWN.Kind -> [whamlet|<mi>kind|]
+    UDWN.Pi vname a b -> [whamlet|
+      <mrow>
+        <mo>(
+        ^{widgetize vname}
+        <mo>:
+        ^{widgetize a}
+        <mo>)
+        <mo>&rarr;
+        ^{widgetize b}
+        |]
+    UDWN.Not a -> [whamlet|
+      <mrow>
+        <mo>&not;
+        <mi>toMathML a
+        |]
+    UDWN.Lam vname m -> [whamlet|
+      <mrow>
+        <mi>&lambda;
+        ^{widgetize vname}
+        <mpadded lspace='-0.2em' width='-0.2em'>
+          <mo>.
+        ^{widgetize m}
+        |]
+    UDWN.App (UDWN.App (UDWN.Con cname) y) x -> [whamlet|
+      <mrow>
+        <mtext>#{cname}
+        <mo>(
+        ^{widgetize x}
+        <mo>,
+        ^{widgetize y}
+        <mo>)
+        |]
+    UDWN.App (UDWN.App (UDWN.App (UDWN.Con cname) z) y) x -> [whamlet|
+      <mrow>
+        <mtext>#{cname}
+        <mo>(
+        ^{widgetize x}
+        <mo>,
+        ^{widgetize y}
+        <mo>,
+        ^{widgetize z}
+        <mo>)
+        |]
+    UDWN.App (UDWN.App (UDWN.App (UDWN.App (UDWN.Con cname) u) z) y) x -> [whamlet|
+      <mrow>
+        <mtext>#{cname}
+        <mo>(
+        ^{widgetize x}
+        <mo>,
+        ^{widgetize y}
+        <mo>,
+        ^{widgetize z}
+        <mo>,
+        ^{widgetize u}
+        <mo>)
+        |]
+    UDWN.App m n -> [whamlet|
+      <mrow>
+        ^{widgetize m}
+        <mo>(
+        ^{widgetize n}
+        <mo>)
+        |]
+    UDWN.Sigma vname a b -> case b of 
+      UDWN.Top -> widgetize  a
+      _   -> [whamlet|
+        <mrow>
+          <mo>[
+          <mtable>
+            <mtr>
+              <mtd columnalign="left">
+                <mrow>
+                  ^{widgetize vname}
+                  <mo>:
+                  ^{widgetize a}
+            <mtr>
+              <mtd columnalign="left">
+                <mpadded height='-0.5em'>^{widgetize b}
+          <mo>]
+        |]
+    UDWN.Pair m n  -> [whamlet|
+      <mrow>
+        <mo>(
+        ^{widgetize m}
+        <mo>,
+        ^{widgetize n}
+        <mo>)
+        |]
+    UDWN.Proj s m  -> [whamlet|
+      <mrow>
+        <msub>
+          <mi>&pi;
+          <mi>#{toText s}
+        <mo>(
+        ^{widgetize m}
+        <mo>)
+        |]
+    UDWN.Lamvec vname m  -> [whamlet|
+      <mrow>
+        <mi>&lambda;
+        <mover>
+          ^{widgetize vname}
+          <mo>&rarr;
+        <mo>.
+        ^{widgetize m}
+        |]
+    UDWN.Appvec vname m -> [whamlet|
+      <mrow>
+        ^{widgetize m}
+        <mover>
+          ^{widgetize vname}
+          <mo>&rarr;
+          |]
+    UDWN.Unit       -> [whamlet|<mi>()|]
+    UDWN.Top        -> [whamlet|<mi>&top;|]
+    UDWN.Bot        -> [whamlet|<mi>&bot;|]
+    UDWN.Asp j m    -> [whamlet|
+      <mrow>
+        <msub>
+          <mo>@
+          <mn>#{T.pack (show j)}
+        <mo>:
+        ^{widgetize m}
+      |]
+    UDWN.Nat    -> [whamlet|<mi>N|]
+    UDWN.Zero   -> [whamlet|<mi>0|]
+    UDWN.Succ n -> [whamlet|
+      <mrow>
+        <mi>s
+        ^{widgetize n}
+        |]
+    UDWN.Natrec n e f -> [whamlet|
+      <mrow>
+        <mi>natrec
+        <mo>(
+        ^{widgetize n}
+        <mo>,
+        ^{widgetize e}
+        <mo>,
+        ^{widgetize f}
+        <mo>)
+        |]
+    UDWN.Eq a m n -> [whamlet|
+      <mrow>
+        ^{widgetize m}
+        <msub>
+          <mo>=
+          ^{widgetize a}
+        ^{widgetize n}
+        |]
+    UDWN.Refl a m -> [whamlet|
+      <mrow>
+        <mi>refl
+        ^{widgetize a}
+        <mo>(
+        ^{widgetize m}
+        <mo>)
+        |]
+    UDWN.Idpeel m n -> [whamlet|
+      <mrow>
+        <mi>idpeel
+        <mo>(
+        ^{widgetize m}
+        <mo>,
+        ^{widgetize n}
+        <mo>)
+        |]
 
