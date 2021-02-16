@@ -56,7 +56,7 @@ jsemData :: [JSeMData]
 jsemData = unsafePerformIO fetchJSeMData
 
 
---Test：JSeMDataからjsem_id・premises・hypothesisをとったもの
+--Test：JSeMDataからjsem_id・answer・premises・hypothesisをとったもの
 data Test = Test{
      jsem_id_w    :: StrictT.Text,
      answer_w     :: Js.JSeMLabel,
@@ -104,8 +104,11 @@ getExamples1R num =
       let s = eithertostring (sentenceLookup num sentences)
           m = unsafePerformIO $ L.parseSentence' 16 2 s
       defaultLayout $ do
-        id <- newIdent
-        [whamlet|<h2> 文 #{num}：#{s}|]
+        [whamlet|
+             <h2> 文 #{num}：#{s}
+             &ensp;<input type="checkbox" id="cat-toggle"/><label for="cat-toggle" id="cat-btn">&ensp;cat</label>&emsp;
+             <input type="checkbox" id="sem-toggle"/><label for="sem-toggle" id="sem-btn">&ensp;sem</label>
+       |]
         toWidget [cassius|
           .rule
             position: relative;
@@ -119,6 +122,8 @@ getExamples1R num =
           h2
             border-bottom: dashed 3px #ffd700
             padding: 0.3em
+          label
+            font-size: 20px;
           .btn-design
             color: #696969;
             font-size: 18pt;
@@ -133,6 +138,66 @@ getExamples1R num =
             background: #f5f5f5;
             border-radius: 10%;
             border: 2px solid #c0c0c0;
+          #cat-toggle
+            display: none;
+          .cathide
+            visibility: visible;
+          #cat-btn
+            display: inline-block;
+          #cat-btn:before
+            display: inline-block;
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #ffe4c4;
+            background: #ffe4c4;
+            content: "ON";
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            line-height: 20pt;
+          #cat-toggle:checked ~ * .cathide
+            visibility: collapse;
+          #cat-toggle:checked ~ #cat-btn:before
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #c0c0c0;
+            background: #c0c0c0;
+            color: #ffffff;
+            content: "OFF";
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            line-height: 20pt;
+          #sem-toggle
+            display: none;
+          .semhide
+            visibility: visible;
+          #sem-btn
+            display: inline-block;
+          #sem-btn:before
+            display: inline-block;
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #ffe4c4;
+            background: #ffe4c4;
+            content: "ON";
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            line-height: 20pt;
+          #sem-toggle:checked ~ * .semhide
+            visibility: collapse;
+          #sem-toggle:checked ~ #sem-btn:before
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #c0c0c0;
+            background: #c0c0c0;
+            color: #ffffff;
+            content: "OFF";
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            line-height: 20pt;
           |]
         --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
         toWidget [julius|
@@ -173,15 +238,21 @@ getJsemR var = do
      let m = unsafePerformIO $ L.parseSentence' 16 2 hy
      defaultLayout $ do
         id <- newIdent
-        [whamlet|<head> [#{var}] answer : #{ans}
-                 $forall pr <- pre
-                    <p>premise : <span class="pre-under">#{pr}
-                 <p>hypothesis : <span class="hy-under">#{hy}
+        [whamlet|
+           <head> [#{var}] 
+               &ensp;<input type="checkbox" id="cat-toggle"/><label for="cat-toggle" id="cat-btn">&ensp;cat</label>&emsp;
+               <input type="checkbox" id="sem-toggle"/><label for="sem-toggle" id="sem-btn">&ensp;sem</label>
+           <p>answer : #{ans}
+              $forall pr <- pre
+                 <p>premise : <span class="pre-under">#{pr}
+           <p>hypothesis : <span class="hy-under">#{hy}
         |]
         toWidget [cassius|
           .rule
             position: relative;
             top: 10px;
+          head
+            font-weight: bold;
           body
             font-size: 1em;
           .font-main
@@ -191,6 +262,8 @@ getJsemR var = do
           h2
             border-bottom: dashed 3px #ffd700
             padding: 0.3em
+          label
+            font-size: 15px;
           .btn-design
             color: #696969;
             font-size: 18pt;
@@ -205,6 +278,66 @@ getJsemR var = do
             background: #f5f5f5;
             border-radius: 10%;
             border: 2px solid #c0c0c0;
+          #cat-toggle
+            display: none;
+          .cathide
+            visibility: visible;
+          #cat-btn
+            display: inline-block;
+          #cat-btn:before
+            display: inline-block;
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #ffe4c4;
+            background: #ffe4c4;
+            content: "ON";
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            line-height: 20pt;
+          #cat-toggle:checked ~ * .cathide
+            visibility: collapse;
+          #cat-toggle:checked ~ #cat-btn:before
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #c0c0c0;
+            background: #c0c0c0;
+            color: #ffffff;
+            content: "OFF";
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            line-height: 20pt;
+          #sem-toggle
+            display: none;
+          .semhide
+            visibility: visible;
+          #sem-btn
+            display: inline-block;
+          #sem-btn:before
+            display: inline-block;
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #ffe4c4;
+            background: #ffe4c4;
+            content: "ON";
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            line-height: 20pt;
+          #sem-toggle:checked ~ * .semhide
+            visibility: collapse;
+          #sem-toggle:checked ~ #sem-btn:before
+            width: 20pt;
+            height: 20pt;
+            border: 2px solid #c0c0c0;
+            background: #c0c0c0;
+            color: #ffffff;
+            content: "OFF";
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            line-height: 20pt;
           .pre-under
             border-bottom: solid 3px #ffd700;
           .hy-under
@@ -228,6 +361,16 @@ getJsemR var = do
               objID2.style.display = 'block';
               objID2.className = 'open';
               buttonID.innerHTML = "+";
+            }};
+          function check(id){
+            var check = document.getElementById(id);
+            var ok = document.getElementById(id + "hide");
+            if(check.checked){
+               ok.style.display = 'none';
+               ok.className = 'close';
+            }else{
+               ok.style.display = 'block';
+               ok.className = 'open';
             }};
           |]
 -- psはpremises・mはhypothesis
@@ -262,8 +405,13 @@ getHomeR = defaultLayout $ do
 main :: IO ()
 main = warp 3000 App
 
+
+
 class Widgetizable a where
   widgetize :: a -> Widget
+
+class Widgetizablere a where
+  widgetizere :: StrictT.Text -> StrictT.Text -> a -> Widget
 
 instance Widgetizable T.Text where
   widgetize = toWidget 
@@ -282,10 +430,10 @@ instance Widgetizable Node where
                 <tr>
                   <td align="center">
                     <table border="0" cellpadding="0">
-                      <tr>
+                      <tr class="cathide">
                         <td align="center">
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
-                      <tr>
+                      <tr class="semhide">
                         <td align="center">
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
@@ -306,10 +454,10 @@ instance Widgetizable Node where
                   <tr>
                     <td align="center" colspan=#{len}>
                       <table border="0" cellpadding="0">
-                        <tr>
+                        <tr class="cathide">
                           <td align="center">
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
-                        <tr>
+                        <tr class="semhide">
                           <td align="center">
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
               <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class="close">
@@ -319,10 +467,10 @@ instance Widgetizable Node where
                   <tr>
                     <td align="center" colspan=#{len}>
                       <table border="0" cellpadding="0">
-                        <tr>
+                        <tr class="cathide">
                           <td align="center">
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
-                        <tr>
+                        <tr class="semhide">
                           <td align="center">
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
@@ -332,6 +480,8 @@ instance Widgetizable Node where
                    <button type="button" class="btn-design" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>-
                   <span .rule>^{widgetize $ rs node}
         |]
+
+
 
 instance Widgetizable RuleSymbol where
   widgetize rs = [whamlet|#{toText rs}|]
