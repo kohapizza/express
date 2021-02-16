@@ -109,116 +109,9 @@ getExamples1R num =
              &ensp;<input type="checkbox" id="cat-toggle"/><label for="cat-toggle" id="cat-btn">&ensp;cat</label>&emsp;
              <input type="checkbox" id="sem-toggle"/><label for="sem-toggle" id="sem-btn">&ensp;sem</label>
        |]
-        toWidget [cassius|
-          .rule
-            position: relative;
-            top: 10px;
-          body
-            font-size: 1em;
-          .font-main
-            padding: 2px;
-          #btn1
-            margin-bottom: 4px;
-          h2
-            border-bottom: dashed 3px #ffd700
-            padding: 0.3em
-          label
-            font-size: 20px;
-          .btn-design
-            color: #696969;
-            font-size: 18pt;
-            text-align: center;
-            background: #ffffff;
-            border-radius: 10%;
-            border: 2px solid #c0c0c0;
-          .btn-design:hover
-            color: #696969;
-            font-size: 18pt;
-            text-align: center;
-            background: #f5f5f5;
-            border-radius: 10%;
-            border: 2px solid #c0c0c0;
-          #cat-toggle
-            display: none;
-          .cathide
-            visibility: visible;
-          #cat-btn
-            display: inline-block;
-          #cat-btn:before
-            display: inline-block;
-            width: 20pt;
-            height: 20pt;
-            border: 2px solid #ffe4c4;
-            background: #ffe4c4;
-            content: "ON";
-            font-weight: bold;
-            font-size: 10pt;
-            text-align: center;
-            line-height: 20pt;
-          #cat-toggle:checked ~ * .cathide
-            visibility: collapse;
-          #cat-toggle:checked ~ #cat-btn:before
-            width: 20pt;
-            height: 20pt;
-            border: 2px solid #c0c0c0;
-            background: #c0c0c0;
-            color: #ffffff;
-            content: "OFF";
-            font-weight: bold;
-            font-size: 9pt;
-            text-align: center;
-            line-height: 20pt;
-          #sem-toggle
-            display: none;
-          .semhide
-            visibility: visible;
-          #sem-btn
-            display: inline-block;
-          #sem-btn:before
-            display: inline-block;
-            width: 20pt;
-            height: 20pt;
-            border: 2px solid #ffe4c4;
-            background: #ffe4c4;
-            content: "ON";
-            font-weight: bold;
-            font-size: 10pt;
-            text-align: center;
-            line-height: 20pt;
-          #sem-toggle:checked ~ * .semhide
-            visibility: collapse;
-          #sem-toggle:checked ~ #sem-btn:before
-            width: 20pt;
-            height: 20pt;
-            border: 2px solid #c0c0c0;
-            background: #c0c0c0;
-            color: #ffffff;
-            content: "OFF";
-            font-weight: bold;
-            font-size: 9pt;
-            text-align: center;
-            line-height: 20pt;
-          |]
         --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-        toWidget [julius|
-          function toggle(id){
-            var objID1 = document.getElementById( id + "layerA" );
-            var objID2 = document.getElementById( id + "layerB" );
-            var buttonID = document.getElementById( id + "button" );
-            if(objID1.className=='close') {
-              objID1.style.display = 'block';
-              objID1.className = 'open';
-              objID2.style.display = 'none';
-              objID2.className = 'close';
-              buttonID.innerHTML = "-";
-            }else{
-              objID1.style.display = 'none';
-              objID1.className = 'close';
-              objID2.style.display = 'block';
-              objID2.className = 'open';
-              buttonID.innerHTML = "+";
-            }};
-          |]
+        myDesign
+        myFunction
         mapM_ widgetize $ take 1 m
 
 
@@ -247,7 +140,18 @@ getJsemR var = do
                  <p>premise : <span class="pre-under">#{pr}
            <p>hypothesis : <span class="hy-under">#{hy}
         |]
-        toWidget [cassius|
+        myDesign
+        --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+        myFunction
+-- psはpremises・mはhypothesis
+        mapM_ widgetize $ ps
+        mapM_ widgetize $ take 1 m
+
+
+--cassiusでデザインしたもの
+myDesign :: Widget
+myDesign = do
+    toWidget [cassius|
           .rule
             position: relative;
             top: 10px;
@@ -343,8 +247,11 @@ getJsemR var = do
           .hy-under
             border-bottom: solid 3px #7fffd4;
           |]
-        --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-        toWidget [julius|
+
+--Juliusたち：関数
+myFunction :: Widget
+myFunction = do
+     toWidget [julius|
           function toggle(id){
             var objID1 = document.getElementById( id + "layerA" );
             var objID2 = document.getElementById( id + "layerB" );
@@ -362,20 +269,7 @@ getJsemR var = do
               objID2.className = 'open';
               buttonID.innerHTML = "+";
             }};
-          function check(id){
-            var check = document.getElementById(id);
-            var ok = document.getElementById(id + "hide");
-            if(check.checked){
-               ok.style.display = 'none';
-               ok.className = 'close';
-            }else{
-               ok.style.display = 'block';
-               ok.className = 'open';
-            }};
           |]
--- psはpremises・mはhypothesis
-        mapM_ widgetize $ ps
-        mapM_ widgetize $ take 1 m
 
 
 myLayout :: Widget
