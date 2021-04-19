@@ -105,19 +105,27 @@ getExamples1R num =
           m = unsafePerformIO $ L.parseSentence' 16 2 s
       defaultLayout $ do
         [whamlet|
-             <h2> 文 #{num}：#{s}
-             &ensp;<input type="checkbox" id="cat-toggle"/><label for="cat-toggle" id="cat-btn">&ensp;cat</label>&emsp;
-             <input type="checkbox" id="sem-toggle"/><label for="sem-toggle" id="sem-btn">&ensp;sem</label>
+          <header>express
+          <body>
+            <div id="sidebar">
+              <h2> 文 #{num}：#{s}
+              <div>
+                 <label for="cat-toggle" id="cat-btn">&ensp;cat&ensp;&ensp;</label>
+              <div>
+                 <label for="sem-toggle" id="sem-btn">&ensp;sem&ensp;</label>
+            <main id="main">
+               <input type="checkbox" id="cat-toggle"/>
+                <input type="checkbox" id="sem-toggle"/>
+                 ^{mapM_ widgetize $ take 1 m}
        |]
         --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
         myDesign
         myFunction
-        mapM_ widgetize $ take 1 m
 
 
 getJsemR :: String -> Handler Html
 getJsemR var = do
--- contentsはTest型
+   -- contentsはTest型
   let contents = jsemSearch jsemData var
 -- preは[T.Text]型・hyはT.Text型
   let ans = show $ answer_w contents
@@ -130,24 +138,31 @@ getJsemR var = do
      let ps = head <$> map unsafePerformIO psIOnode
      let m = unsafePerformIO $ L.parseSentence' 16 2 hy
      defaultLayout $ do
-        id <- newIdent
-        [whamlet|
-           <head> [#{var}] 
-               &ensp;<input type="checkbox" id="cat-toggle"/><label for="cat-toggle" id="cat-btn">&ensp;cat</label>&emsp;
-               <input type="checkbox" id="sem-toggle"/><label for="sem-toggle" id="sem-btn">&ensp;sem</label>
-           <p>answer : #{ans}
-              $forall pr <- pre
-                 <p>premise : <span class="pre-under">#{pr}
-           <p>hypothesis : <span class="hy-under">#{hy}
-        |]
-        myDesign
-        --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-        myFunction
--- psはpremises・mはhypothesis
-        mapM_ widgetize $ ps
-        mapM_ widgetize $ take 1 m
+     [whamlet|
+            <head>
+               <title> #{var}
+            <header>
+              <b>[#{var}]</b>
+                   <br>&ensp;answer : #{ans}
+                   $forall pr <- pre
+                        &ensp;premise : <span class="pre-under">#{pr}</span>
+                   <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
+            <body>
+               <main id="main">     
+                 <input type="checkbox" id="cat-toggle"/>
+                 <input type="checkbox" id="sem-toggle"/>
+                 <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
+                 <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
+                   ^{mapM_ widgetize $ ps}
+                   ^{mapM_ widgetize $ take 1 m}
+     |]
+     myDesign
+     myFunction
 
 
+     
+
+ 
 --cassiusでデザインしたもの
 myDesign :: Widget
 myDesign = do
@@ -157,17 +172,32 @@ myDesign = do
             top: 10px;
           head
             font-weight: bold;
+          header
+            position: fixed;
+            width: 100%;
+            height: 110px;
+            background: #ffefd5;
+            border-bottom: dotted 3px #ffa500; 
           body
             font-size: 1em;
+            margin: 0;
+          #main
+            padding: 110px 0px 0px 20px;
+          ul
+            list-style: none;
+          p.hyoujimenu
+            text-align: center;
+            padding: 10px 0px;
+            border-top: dotted 3px #ffa500;
+            border-bottom: dotted 3px #ffa500;
+            background: #ffffff;
           .font-main
             padding: 2px;
           #btn1
             margin-bottom: 4px;
           h2
-            border-bottom: dashed 3px #ffd700
+            border-bottom: dashed 3px #ffd700;
             padding: 0.3em
-          label
-            font-size: 15px;
           .btn-design
             color: #696969;
             font-size: 18pt;
@@ -185,63 +215,67 @@ myDesign = do
           #cat-toggle
             display: none;
           .cathide
-            visibility: visible;
-          #cat-btn
-            display: inline-block;
-          #cat-btn:before
+            display: block;
+          #cat-toggle:checked ~ * .cathide
+            display: none;
+          #catbtn
+            top: 140px;
+            position: fixed;
+            font-weight: bold;
+            border: 1px solid #c0c0c0;
+            color: #808080;
+            background: #ffffff;
+          #catbtn:before
             display: inline-block;
             width: 20pt;
             height: 20pt;
-            border: 2px solid #ffe4c4;
-            background: #ffe4c4;
+            border: 3px solid #ffd700;
+            color: #ffffff;
+            background: #ffd700;
             content: "ON";
             font-weight: bold;
             font-size: 10pt;
             text-align: center;
             line-height: 20pt;
-          #cat-toggle:checked ~ * .cathide
-            visibility: collapse;
-          #cat-toggle:checked ~ #cat-btn:before
-            width: 20pt;
-            height: 20pt;
-            border: 2px solid #c0c0c0;
-            background: #c0c0c0;
+          #catbtn:hover
+            border: 3px solid #c0c0c0;
+          #cat-toggle:checked ~ label[id="catbtn"]:before
             color: #ffffff;
+            border: 3px solid #c0c0c0;
+            background: #c0c0c0;
             content: "OFF";
-            font-weight: bold;
-            font-size: 9pt;
-            text-align: center;
-            line-height: 20pt;
           #sem-toggle
             display: none;
           .semhide
-            visibility: visible;
-          #sem-btn
-            display: inline-block;
-          #sem-btn:before
+            display: block;
+          #sem-toggle:checked ~ * .semhide
+            display: none;
+          #sembtn
+            top: 180px;
+            position: fixed;
+            font-weight: bold;
+            border: 1px solid #c0c0c0;
+            color: #808080;
+            background: #ffffff;
+          #sembtn:before
             display: inline-block;
             width: 20pt;
             height: 20pt;
-            border: 2px solid #ffe4c4;
-            background: #ffe4c4;
+            border: 3px solid #ffd700;
+            color: #ffffff;
+            background: #ffd700;
             content: "ON";
             font-weight: bold;
             font-size: 10pt;
             text-align: center;
             line-height: 20pt;
-          #sem-toggle:checked ~ * .semhide
-            visibility: collapse;
-          #sem-toggle:checked ~ #sem-btn:before
-            width: 20pt;
-            height: 20pt;
-            border: 2px solid #c0c0c0;
-            background: #c0c0c0;
+          #sembtn:hover
+            border: 3px solid #c0c0c0;
+          #sem-toggle:checked ~ label[id="sembtn"]:before
             color: #ffffff;
+            border: 3px solid #c0c0c0;
+            background: #c0c0c0;
             content: "OFF";
-            font-weight: bold;
-            font-size: 9pt;
-            text-align: center;
-            line-height: 20pt;
           .pre-under
             border-bottom: solid 3px #ffd700;
           .hy-under
@@ -304,9 +338,6 @@ main = warp 3000 App
 class Widgetizable a where
   widgetize :: a -> Widget
 
-class Widgetizablere a where
-  widgetizere :: StrictT.Text -> StrictT.Text -> a -> Widget
-
 instance Widgetizable T.Text where
   widgetize = toWidget 
 
@@ -316,9 +347,9 @@ instance Widgetizable Node where
       id <- newIdent
       [whamlet|
         <table>
-          <tr>
+          <tr valign="bottom">
             <td valign="baseline">
-              <table border="1" rules="rows" frame="void" cellpadding="5">
+              <table border="1" rules="rows" frame="void" cellpadding="2">
                 <tr>
                   <td align="center" bgcolor="#ffd700">#{pf node}
                 <tr>
@@ -338,11 +369,11 @@ instance Widgetizable Node where
       id <- newIdent
       [whamlet|
          <table>
-          <tr>
+          <tr valign="bottom">
             <td valign="baseline">
               <div id=#{StrictT.concat [id, "layerA"]} style="display: block" class="open">
-                <table border="1" rules="rows" frame="void" cellpadding="5">
-                  <tr>
+                <table border="1" rules="rows" frame="void" cellpadding="2">
+                  <tr valign="bottom">
                     $forall dtr <- dtrs
                       <td align="center" valign="bottom">^{widgetize dtr}&nbsp;
                   <tr>
