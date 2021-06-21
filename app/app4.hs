@@ -1,29 +1,31 @@
-{-# LANGUAGE ExtendedDefaultRules #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE QuasiQuotes          #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ExtendedDefaultRules  #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE ViewPatterns          #-}
 
-import qualified Data.Text as StrictT
-import qualified Data.Text.Lazy as T
-import qualified Data.Map as Map
-import qualified Data.Maybe as Maybe --base
-import System.IO.Unsafe (unsafePerformIO)
-import qualified Lightblue as L
-import Corpus.JSeM (JSeMData(..), fetchJSeMData)
-import Interface.Text (SimpleText(..))
-import Interface.TeX (Typeset(..))
-import Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
-import qualified DTS.UDTT as UDTT
-import qualified DTS.UDTTwithName as UDWN
-import Yesod
-import qualified Text.Julius as J
-import qualified JSeM as Js               --jsem
+import  qualified Data.Text as StrictT
+import  qualified Data.Text.Lazy as T
+import  qualified Data.Map as Map
+import  qualified Data.Maybe as Maybe --base
+import  System.IO.Unsafe (unsafePerformIO)
+import  qualified Lightblue as L
+import  Corpus.JSeM (JSeMData(..), fetchJSeMData)
+import  Interface.Text (SimpleText(..))
+import  Interface.TeX (Typeset(..))
+import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
+import  qualified DTS.UDTT as UDTT
+import  qualified DTS.UDTTwithName as UDWN
+import  Yesod
+import  qualified Text.Julius as J
+import  qualified JSeM as Js               --jsem
 --import qualified JSeM.XML as Js           --jsem
-import Control.Monad (forM_)           --base
-import qualified Corpus.JSeM as C
+import  Control.Monad (forM_)           --base
+import  Control.Applicative
+import  qualified Corpus.JSeM as C
 
 data App = App
 
@@ -31,7 +33,14 @@ mkYesod "App" [parseRoutes|
 / HomeR GET
 /examples/#Int Examples1R GET
 /jsem/#String JsemR GET
+/input InputR GET
 |]
+
+instance Yesod App
+
+instance RenderMessage App FormMessage where
+   renderMessage _ _ = defaultFormMessage
+
 
 --文探索
 type Sentence = T.Text
@@ -77,7 +86,11 @@ jsemSearch jsemData sentID = do
                      then jsemSearch xs sentID
                      else Test{jsem_id_w = i, answer_w = a, premises_w = p, hypothesis_w = h}
 
-     
+
+--Sentences : 入力文
+data Sentences = Sentences{
+    a_Sentence :: StrictT.Text
+    } deriving (Show)
 
 sentenceLookup :: Int -> SentenceMap -> Either Sentence Sentence
 sentenceLookup number map = case Map.lookup number map of
@@ -90,9 +103,6 @@ eithertostring :: Either Sentence Sentence -> Sentence
 eithertostring result =
   case result of Left sentence -> sentence
                  Right sentence -> sentence
-
-
-instance Yesod App
 
 
 
@@ -161,7 +171,59 @@ getJsemR var = do
 
 
      
+myLayout :: Widget
+myLayout  = do
+        aaa <- newIdent
+        toWidget [lucius|
+                     .#{aaa}{
+		      color : red
+		      
+		     }
+	            {-  body {
+		       font-family: verdana
+		       
+		     } -}
+	         |]
+        toWidget [hamlet|
+         <h1>こんにちは
+         <p .#{aaa}>Hello World!!
+         |]
 
+getInputR :: Handler Html
+getInputR = do
+   sentence <- runInputGet $ Sentences
+               <$> ireq textField "sen"
+   let a_sen = T.fromStrict $ a_Sentence sentence
+   let noIOsen = unsafePerformIO $ L.parseSentence' 16 2 a_sen
+   defaultLayout $ do
+   [whamlet|
+           <header>
+              <p>&ensp;入力文：#{a_sen}
+              <form action=@{InputR}>
+                <p>&ensp;文を入力してね！
+                   <input type=text name=sen>
+                   <input type=submit value="送信">
+           <body>
+               <main id="main">     
+                 <input type="checkbox" id="cat-toggle"/>
+                 <input type="checkbox" id="sem-toggle"/>
+                 <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
+                 <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>          
+                     ^{mapM_ widgetize $ take 1 noIOsen}        
+   |]
+   myDesign
+   myFunction
+
+
+getHomeR :: Handler Html
+getHomeR = 
+  defaultLayout
+   [whamlet|
+      <form action=@{InputR}>
+        <p>文を入力してね！
+           <input type=text name=sen>
+           <input type=submit value="送信">
+   |]
  
 --cassiusでデザインしたもの
 myDesign :: Widget
@@ -306,29 +368,7 @@ myFunction = do
           |]
 
 
-myLayout :: Widget
-myLayout  = do
-        aaa <- newIdent
-        toWidget [lucius|
-                     .#{aaa}{
-		      color : red
-		      
-		     }
-	            {-  body {
-		       font-family: verdana
-		       
-		     } -}
-	         |]
-        toWidget [hamlet|
-         <h1>こんにちは
-         <p .#{aaa}>Hello World!!
-         |]
 
-
-getHomeR :: Handler Html
-getHomeR = defaultLayout $ do
-  setTitle "Page title"
-  myLayout
 
 main :: IO ()
 main = warp 3000 App
@@ -362,7 +402,7 @@ instance Widgetizable Node where
                         <td align="center">
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
-              <span .rule>LEX
+              <span>LEX
         |]
     dtrs -> do
       let len = (length dtrs)*2
@@ -403,7 +443,7 @@ instance Widgetizable Node where
                 <tr>
                   <td>
                    <button type="button" class="btn-design" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>-
-                  <span .rule>^{widgetize $ rs node}
+                  <span>^{widgetize $ rs node}
         |]
 
 
