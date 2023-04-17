@@ -148,7 +148,7 @@ getJsemR var = do
      let ps = head <$> map unsafePerformIO psIOnode
      let m = unsafePerformIO $ L.parseSentence' 16 2 hy
      defaultLayout $ do
-     [whamlet|
+      [whamlet|
             <head>
                <title> #{var}
             <header>
@@ -165,9 +165,9 @@ getJsemR var = do
                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
                    ^{mapM_ widgetize $ ps}
                    ^{mapM_ widgetize $ take 1 m}
-     |]
-     myDesign
-     myFunction
+      |]
+      myDesign
+      myFunction
 
 
      
@@ -196,7 +196,7 @@ getInputR = do
    let a_sen = T.fromStrict $ a_Sentence sentence
    let noIOsen = unsafePerformIO $ L.parseSentence' 16 2 a_sen
    defaultLayout $ do
-   [whamlet|
+    [whamlet|
            <header>
               <p>&ensp;入力文：#{a_sen}
               <form action=@{InputR}>
@@ -210,9 +210,9 @@ getInputR = do
                  <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>          
                      ^{mapM_ widgetize $ take 1 noIOsen}        
-   |]
-   myDesign
-   myFunction
+    |]
+    myDesign
+    myFunction
 
 
 getHomeR :: Handler Html
