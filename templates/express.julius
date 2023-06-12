@@ -1,0 +1,58 @@
+function toggle(id){
+            var objID1 = document.getElementById( id + "layerA" );
+            var objID2 = document.getElementById( id + "layerB" );
+            var buttonID = document.getElementById( id + "button" );
+            if(objID1.className=='close') {
+              objID1.style.display = 'block';
+              objID1.className = 'open';
+              objID2.style.display = 'none';
+              objID2.className = 'close';
+              buttonID.innerHTML = "-";
+            }else{
+              objID1.style.display = 'none';
+              objID1.className = 'close';
+              objID2.style.display = 'block';
+              objID2.className = 'open';
+              buttonID.innerHTML = "+";
+}};
+
+ function koushi(count,sen) {
+                 var canvas = document.getElementById('sample');
+                 var context = canvas.getContext('2d');
+                 context.beginPath();
+                 context.font = "14px 'ＭＳ ゴシック'";
+                 //文字列
+                 var st = count;
+                 //たて
+                 var height = st*100;
+                 //横へってくマス
+                 var width = st*100;
+                 //文の先頭指定
+                 var a = count - 1;
+                 //文の先頭位置を戻す役割
+                 var flag = count - 1;
+                 //文の最後指定
+                 var t = count;
+                 //格子作る
+                 for(var h = height; h > 0; h-=100){
+    	                for (var w = width; w > 0; w-=100) {
+                              context.rect(w,h,100,100);
+                              context.fillText(separate_sen(sen,a,t), w+15, h+20);
+                              a--;
+                             }
+                      width -= 100;
+                      t--;
+                      flag--;
+                      a = flag;
+                }
+                context.stroke();
+        
+}
+
+
+//配列
+function separate_sen(sen,h,t){
+      var result = sen.substring(h,t)
+      return result
+}
+
