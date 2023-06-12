@@ -3,7 +3,8 @@
 
 module Lightblue (
   parseSentence,
-  parseSentence'
+  parseSentence',
+  parse
   ) where
 
 import qualified Data.Text.Lazy as T
@@ -11,7 +12,7 @@ import qualified Parser.ChartParser as CP
 import qualified Parser.CCG as CCG
 import qualified Interface.HTML as HTML
 
--- |
+
 parseSentence :: Int -> Int -> T.Text -> IO(T.Text)
 parseSentence beam nbest sentence = do
   nodes <- CP.simpleParse beam sentence
@@ -24,3 +25,9 @@ parseSentence' beam nbest sentence = do
   return $ take nbest nodes
 
 
+parse :: Int           -- ^ The beam width
+         -> T.Text     -- ^ A sentence to be parsed
+         -> IO (CP.Chart) -- ^ A pair of the resulting CYK-chart and a list of CYK-charts for segments
+parse beam sentence = do 
+   chart <- CP.parse beam True (\_ _ -> id) sentence
+   return chart
