@@ -1,0 +1,114 @@
+          .rule
+            position: relative;
+            top: 10px;
+          head
+            font-weight: bold;
+          header
+            position: fixed;
+            width: 100%;
+            height: 110px;
+            background: #ffefd5;
+            border-bottom: dotted 3px #ffa500; 
+          body
+            font-size: 1em;
+            margin: 0;
+          #main
+            padding: 110px 0px 0px 20px;
+          ul
+            list-style: none;
+          p.hyoujimenu
+            text-align: center;
+            padding: 10px 0px;
+            border-top: dotted 3px #ffa500;
+            border-bottom: dotted 3px #ffa500;
+            background: #ffffff;
+          .font-main
+            padding: 2px;
+          #btn1
+            margin-bottom: 4px;
+          h2
+            border-bottom: dashed 3px #ffd700;
+            padding: 0.3em
+          .btn-design
+            color: #696969;
+            font-size: 18pt;
+            text-align: center;
+            background: #ffffff;
+            border-radius: 10%;
+            border: 2px solid #c0c0c0;
+          .btn-design:hover
+            color: #696969;
+            font-size: 18pt;
+            text-align: center;
+            background: #f5f5f5;
+            border-radius: 10%;
+            border: 2px solid #c0c0c0;
+          #cat-toggle
+            display: none;
+          .cathide
+            display: block;
+          #cat-toggle:checked ~ * .cathide
+            display: none;
+          #catbtn
+            top: 140px;
+            position: fixed;
+            font-weight: bold;
+            border: 1px solid #c0c0c0;
+            color: #808080;
+            background: #ffffff;
+          #catbtn:before
+            display: inline-block;
+            width: 20pt;
+            height: 20pt;
+            border: 3px solid #ffd700;
+            color: #ffffff;
+            background: #ffd700;
+            content: "ON";
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            line-height: 20pt;
+          #catbtn:hover
+            border: 3px solid #c0c0c0;
+          #cat-toggle:checked ~ label[id="catbtn"]:before
+            color: #ffffff;
+            border: 3px solid #c0c0c0;
+            background: #c0c0c0;
+            content: "OFF";
+          #sem-toggle
+            display: none;
+          .semhide
+            display: block;
+          #sem-toggle:checked ~ * .semhide
+            display: none;
+          #sembtn
+            top: 180px;
+            position: fixed;
+            font-weight: bold;
+            border: 1px solid #c0c0c0;
+            color: #808080;
+            background: #ffffff;
+          #sembtn:before
+            display: inline-block;
+            width: 20pt;
+            height: 20pt;
+            border: 3px solid #ffd700;
+            color: #ffffff;
+            background: #ffd700;
+            content: "ON";
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            line-height: 20pt;
+          #sembtn:hover
+            border: 3px solid #c0c0c0;
+          #sem-toggle:checked ~ label[id="sembtn"]:before
+            color: #ffffff;
+            border: 3px solid #c0c0c0;
+            background: #c0c0c0;
+            content: "OFF";
+          .pre-under
+            border-bottom: solid 3px #ffd700;
+          .hy-under
+            border-bottom: solid 3px #7fffd4;
+
