@@ -9,29 +9,32 @@
 
 import  qualified Data.Text as StrictT
 import  qualified Data.Text.Lazy as T
+--import  Data.String.IsString (Char)
 import  qualified Data.Map as Map
 import  qualified Data.Maybe as Maybe --base
+import  Text.Blaze.Html.Renderer.String
 import  System.IO.Unsafe (unsafePerformIO)
-import  qualified Lightblue as L
-import  Corpus.JSeM (JSeMData(..), fetchJSeMData)
+import qualified Interface.HTML as HTML
 import  Interface.Text (SimpleText(..))
 import  Interface.TeX (Typeset(..))
 import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
 import  qualified DTS.UDTT as UDTT
 import  qualified DTS.UDTTwithName as UDWN
 import  Yesod
-import  qualified Text.Julius as J
-import  qualified JSeM as Js               --jsem
---import qualified JSeM.XML as Js           --jsem
+import Text.Hamlet
+import Text.Cassius
+import  Text.Julius
+import  qualified Lightblue as L
+import  qualified Sentence_process as SP
+--import  WidgetExpress(nodewidget)
 import  Control.Monad (forM_)           --base
 import  Control.Applicative
-import  qualified Corpus.JSeM as C
 
 data App = App
-
+  
+  
 mkYesod "App" [parseRoutes|
 / HomeR GET
-/examples/#Int Examples1R GET
 /jsem/#String JsemR GET
 /input InputR GET
 |]
@@ -40,107 +43,32 @@ instance Yesod App
 
 instance RenderMessage App FormMessage where
    renderMessage _ _ = defaultFormMessage
+   
 
-
---文探索
-type Sentence = T.Text
-
-type SentenceMap = Map.Map Int Sentence
-
-sentences :: SentenceMap
-sentences = Map.fromList
-  [(1, T.fromStrict $ hypothesis (jsemData!!2))
-  ,(2, "いいいい")
-  ,(3, "おはよう")
-  ,(4, "僕は学生だ")
-  ,(5, "私は猫と住みたい")
-  ,(6, "犬が猫を追いかける")
-  ,(7, "二匹の羊が寝ている")
-  ,(8, "白い猫と黒い猫がいる")
-  ,(9, "家にテレビがある")
-  ,(10, "庭に花が咲く")
-  ]
-
-jsemData :: [JSeMData]
-jsemData = unsafePerformIO fetchJSeMData
-
-
---Test：JSeMDataからjsem_id・answer・premises・hypothesisをとったもの
-data Test = Test{
-     jsem_id_w    :: StrictT.Text,
-     answer_w     :: Js.JSeMLabel,
-     premises_w   :: [StrictT.Text],
-     hypothesis_w :: StrictT.Text
-} deriving (Eq, Show)
-
-
-emptyTest :: Test
-emptyTest = Test { jsem_id_w = "", answer_w = Js.OTHER, premises_w = [], hypothesis_w = "" } 
-
-jsemSearch :: [JSeMData] -> String -> Test
-jsemSearch jsemData sentID = do
-      case jsemData of
-          [] -> emptyTest
-          (JSeMData{C.jsem_id = i, C.link = l, C.description = d, C.answer = a, C.phenomena = ph, C.inference_type = it, C.note = n, C.premises = p, C.hypothesis = h}:xs) -> 
-                 if (i /= StrictT.pack sentID) 
-                     then jsemSearch xs sentID
-                     else Test{jsem_id_w = i, answer_w = a, premises_w = p, hypothesis_w = h}
-
-
---Sentences : 入力文
-data Sentences = Sentences{
-    a_Sentence :: StrictT.Text
-    } deriving (Show)
-
-sentenceLookup :: Int -> SentenceMap -> Either Sentence Sentence
-sentenceLookup number map = case Map.lookup number map of
-  Nothing -> Left $ "存在しません"
-  Just sentence -> Right sentence 
-
-
---Either型からString型にする
-eithertostring :: Either Sentence Sentence -> Sentence
-eithertostring result =
-  case result of Left sentence -> sentence
-                 Right sentence -> sentence
-
-
-
-getExamples1R :: Int -> Handler Html
-getExamples1R num =
-  if (num < 0 || num > 10) 
-    then notFound
-    else do
-      let s = eithertostring (sentenceLookup num sentences)
-          m = unsafePerformIO $ L.parseSentence' 16 2 s
-      defaultLayout $ do
-        [whamlet|
-          <header>express
-          <body>
-            <div id="sidebar">
-              <h2> 文 #{num}：#{s}
-              <div>
-                 <label for="cat-toggle" id="cat-btn">&ensp;cat&ensp;&ensp;</label>
-              <div>
-                 <label for="sem-toggle" id="sem-btn">&ensp;sem&ensp;</label>
-            <main id="main">
-               <input type="checkbox" id="cat-toggle"/>
-                <input type="checkbox" id="sem-toggle"/>
-                 ^{mapM_ widgetize $ take 1 m}
-       |]
-        --toWidget $ J.juliusFile "Interface/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-        myDesign
-        myFunction
-
+getHomeR :: Handler Html
+getHomeR = do
+  let count = 5
+  defaultLayout $ do
+   [whamlet|
+       <body onLoad="koushi(#{count})">
+          <form action=@{InputR}>
+            <p>文を入力してね！
+              <input type=text name=sen>
+              <input type=submit value="送信">
+              <h2>あ
+              <canvas id="sample" width="500" height="500" style="background-color:yellow;">      
+   |]
+   myFunction
+ 
 
 getJsemR :: String -> Handler Html
 getJsemR var = do
    -- contentsはTest型
-  let contents = jsemSearch jsemData var
+  let contents = SP.jsemSearch SP.jsemData var
 -- preは[T.Text]型・hyはT.Text型
-  let ans = show $ answer_w contents
-      pre = map T.fromStrict (premises_w contents)
-      hy = T.fromStrict $ hypothesis_w contents
+  let ans = show $ SP.answer_w contents
+      pre = map T.fromStrict (SP.premises_w contents)
+      hy = T.fromStrict $ SP.hypothesis_w contents
   if( pre == [] || hy == "" ) 
    then defaultLayout $ do [whamlet|<p><font color=red> Notfound.|]
    else do
@@ -148,233 +76,85 @@ getJsemR var = do
      let ps = head <$> map unsafePerformIO psIOnode
      let m = unsafePerformIO $ L.parseSentence' 16 2 hy
      defaultLayout $ do
-      [whamlet|
-            <head>
+         [whamlet|
+          <head>
                <title> #{var}
-            <header>
+          <header>
               <b>[#{var}]</b>
                    <br>&ensp;answer : #{ans}
                    $forall pr <- pre
                         &ensp;premise : <span class="pre-under">#{pr}</span>
                    <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
-            <body>
+          <body>
                <main id="main">     
                  <input type="checkbox" id="cat-toggle"/>
                  <input type="checkbox" id="sem-toggle"/>
                  <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
-                   ^{mapM_ widgetize $ ps}
-                   ^{mapM_ widgetize $ take 1 m}
-      |]
-      myDesign
-      myFunction
+                      ^{mapM_ widgetize $ ps}
+                      ^{mapM_ widgetize $ take 1 m}
+
+         |]
+         myDesign
+         myFunction
 
 
      
-myLayout :: Widget
-myLayout  = do
-        aaa <- newIdent
-        toWidget [lucius|
-                     .#{aaa}{
-		      color : red
-		      
-		     }
-	            {-  body {
-		       font-family: verdana
-		       
-		     } -}
-	         |]
-        toWidget [hamlet|
-         <h1>こんにちは
-         <p .#{aaa}>Hello World!!
-         |]
-
 getInputR :: Handler Html
 getInputR = do
-   sentence <- runInputGet $ Sentences
+   sentence <- runInputGet $ SP.InputSentences
                <$> ireq textField "sen"
-   let a_sen = T.fromStrict $ a_Sentence sentence
-   let noIOsen = unsafePerformIO $ L.parseSentence' 16 2 a_sen
-   defaultLayout $ do
-    [whamlet|
+   let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
+   let a_sen = T.fromStrict $ SP.input_Sentence sentence
+   let count = SP.sentence_filter_count $ SP.input_Sentence sentence
+-- type Chart = M.Map (Int, Int) [CCG.Node] 
+-- k：(Int, Int) , v：[CCG.Node] ???
+   let chart = unsafePerformIO $ L.parse 5 a_sen
+-- nodes は Maybe [CCG.Node]のはず
+   let maybe_nodes = Map.lookup (0,2) chart
+   let nodes = SP.chart2nodes maybe_nodes
+   if nodes == [] then  defaultLayout $ do [whamlet| <h2> ノードないよ|]
+    else do
+      defaultLayout $ do
+        [whamlet|
            <header>
-              <p>&ensp;入力文：#{a_sen}
+              <p>&ensp;<b>入力文：#{a_sen}</b>
               <form action=@{InputR}>
                 <p>&ensp;文を入力してね！
                    <input type=text name=sen>
                    <input type=submit value="送信">
-           <body>
-               <main id="main">     
-                 <input type="checkbox" id="cat-toggle"/>
-                 <input type="checkbox" id="sem-toggle"/>
-                 <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
-                 <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>          
-                     ^{mapM_ widgetize $ take 1 noIOsen}        
-    |]
-    myDesign
-    myFunction
+           <body onLoad="koushi(#{count},#{string_sen})">
+             <main id="main">
+                <p>
+                <canvas id="sample" width="1000" height="800" style="background-color:yellow;">
+                <p>
+                <input type="checkbox" id="cat-toggle"/>
+                <input type="checkbox" id="sem-toggle"/>
+                <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
+                <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>       
+                       ^{mapM_ widgetize $ nodes}             
+        |]
+        myDesign
+        myFunction
 
 
-getHomeR :: Handler Html
-getHomeR = 
-  defaultLayout
-   [whamlet|
-      <form action=@{InputR}>
-        <p>文を入力してね！
-           <input type=text name=sen>
-           <input type=submit value="送信">
-   |]
- 
---cassiusでデザインしたもの
+--CSS（cassius）
 myDesign :: Widget
 myDesign = do
-    toWidget [cassius|
-          .rule
-            position: relative;
-            top: 10px;
-          head
-            font-weight: bold;
-          header
-            position: fixed;
-            width: 100%;
-            height: 110px;
-            background: #ffefd5;
-            border-bottom: dotted 3px #ffa500; 
-          body
-            font-size: 1em;
-            margin: 0;
-          #main
-            padding: 110px 0px 0px 20px;
-          ul
-            list-style: none;
-          p.hyoujimenu
-            text-align: center;
-            padding: 10px 0px;
-            border-top: dotted 3px #ffa500;
-            border-bottom: dotted 3px #ffa500;
-            background: #ffffff;
-          .font-main
-            padding: 2px;
-          #btn1
-            margin-bottom: 4px;
-          h2
-            border-bottom: dashed 3px #ffd700;
-            padding: 0.3em
-          .btn-design
-            color: #696969;
-            font-size: 18pt;
-            text-align: center;
-            background: #ffffff;
-            border-radius: 10%;
-            border: 2px solid #c0c0c0;
-          .btn-design:hover
-            color: #696969;
-            font-size: 18pt;
-            text-align: center;
-            background: #f5f5f5;
-            border-radius: 10%;
-            border: 2px solid #c0c0c0;
-          #cat-toggle
-            display: none;
-          .cathide
-            display: block;
-          #cat-toggle:checked ~ * .cathide
-            display: none;
-          #catbtn
-            top: 140px;
-            position: fixed;
-            font-weight: bold;
-            border: 1px solid #c0c0c0;
-            color: #808080;
-            background: #ffffff;
-          #catbtn:before
-            display: inline-block;
-            width: 20pt;
-            height: 20pt;
-            border: 3px solid #ffd700;
-            color: #ffffff;
-            background: #ffd700;
-            content: "ON";
-            font-weight: bold;
-            font-size: 10pt;
-            text-align: center;
-            line-height: 20pt;
-          #catbtn:hover
-            border: 3px solid #c0c0c0;
-          #cat-toggle:checked ~ label[id="catbtn"]:before
-            color: #ffffff;
-            border: 3px solid #c0c0c0;
-            background: #c0c0c0;
-            content: "OFF";
-          #sem-toggle
-            display: none;
-          .semhide
-            display: block;
-          #sem-toggle:checked ~ * .semhide
-            display: none;
-          #sembtn
-            top: 180px;
-            position: fixed;
-            font-weight: bold;
-            border: 1px solid #c0c0c0;
-            color: #808080;
-            background: #ffffff;
-          #sembtn:before
-            display: inline-block;
-            width: 20pt;
-            height: 20pt;
-            border: 3px solid #ffd700;
-            color: #ffffff;
-            background: #ffd700;
-            content: "ON";
-            font-weight: bold;
-            font-size: 10pt;
-            text-align: center;
-            line-height: 20pt;
-          #sembtn:hover
-            border: 3px solid #c0c0c0;
-          #sem-toggle:checked ~ label[id="sembtn"]:before
-            color: #ffffff;
-            border: 3px solid #c0c0c0;
-            background: #c0c0c0;
-            content: "OFF";
-          .pre-under
-            border-bottom: solid 3px #ffd700;
-          .hy-under
-            border-bottom: solid 3px #7fffd4;
-          |]
+   toWidget $(cassiusFile "templates/express.cassius")
 
---Juliusたち：関数
+--javascript（julius）
 myFunction :: Widget
 myFunction = do
-     toWidget [julius|
-          function toggle(id){
-            var objID1 = document.getElementById( id + "layerA" );
-            var objID2 = document.getElementById( id + "layerB" );
-            var buttonID = document.getElementById( id + "button" );
-            if(objID1.className=='close') {
-              objID1.style.display = 'block';
-              objID1.className = 'open';
-              objID2.style.display = 'none';
-              objID2.className = 'close';
-              buttonID.innerHTML = "-";
-            }else{
-              objID1.style.display = 'none';
-              objID1.className = 'close';
-              objID2.style.display = 'block';
-              objID2.className = 'open';
-              buttonID.innerHTML = "+";
-            }};
-          |]
+    toWidget $(juliusFile "templates/express.julius")
+   
 
-
-
+ 
 
 main :: IO ()
 main = warp 3000 App
-
-
-
+ 
+ 
 class Widgetizable a where
   widgetize :: a -> Widget
 
@@ -724,4 +504,3 @@ instance Widgetizable UDWN.Preterm where
         ^{widgetize n}
         <mo>)
         |]
-
