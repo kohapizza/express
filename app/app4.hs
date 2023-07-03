@@ -13,17 +13,11 @@ import  qualified Data.Text.Lazy as T
 --import  Data.String.IsString (Char)
 import  qualified Data.Map as Map
 import  qualified Data.Maybe as Maybe --base
-import  Text.Blaze.Html.Renderer.String
+--import  Text.Blaze.Html.Renderer.String
 import  System.IO.Unsafe (unsafePerformIO)
-import qualified Interface.HTML as HTML
-import  Interface.Text (SimpleText(..))
-import  Interface.TeX (Typeset(..))
-import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
-import  qualified DTS.UDTT as UDTT
-import  qualified DTS.UDTTwithName as UDWN
 import  Yesod
-import Text.Hamlet
-import Text.Cassius
+import  Text.Hamlet
+import  Text.Cassius
 import  Text.Julius
 import  qualified Lightblue as L
 import  qualified Sentence_process as SP
@@ -48,19 +42,44 @@ instance RenderMessage App FormMessage where
 
 getHomeR :: Handler Html
 getHomeR = do
-  let count = 5
+  --(widget, enctype) <- generateFormPost personForm
   defaultLayout $ do
    [whamlet|
-       <body onLoad="koushi(#{count})">
-          <form action=@{InputR}>
-            <p>文を入力してね！
-              <input type=text name=sen>
-              <input type=submit value="送信">
-              <h2>あ
-              <canvas id="sample" width="500" height="500" style="background-color:yellow;">      
+      <header class="home_header">
+              <h2>日本語CCG ChartParser
+      <body class="home_body">
+               例文：私は花子だ。
+          <p>
+               (開始位置, 終了位置)
+          <p>
+               この例文の（0,1）は 「私」
+          <p>
+               この例文の（2,5）は「花子だ」
+          <div class="home_btn">
+             <form action=@{InputR}>
+                   入力文
+                   <input type=text name=sen>
+              <p>
+                   （開始位置
+                   <input type=int name=sen_s class="number_input">
+                   , 終了位置
+                   <input type=int name=sen_e class="number_input">）
+               <p>    
+                   beam
+                   <input type=int name=sen_b class="number_input">
+               <p>     
+                   <input type=submit value="Let's ChartParser !" class="input_submit">
    |]
+   myDesign
    myFunction
- 
+
+--sentenceForm :: Html -> MForm Handler (FormResult InputSentences, Widget)
+--sentenceForm = renderDivs $ InputSentences
+ --   <$> areq textField "sen" Nothing
+--    <*> areq intField "sen_s" 0
+--    <*> areq intField "sen_e" 4
+--    <*> areq urlField "beam" 32
+
 
 getJsemR :: String -> Handler Html
 getJsemR var = do
@@ -80,7 +99,7 @@ getJsemR var = do
          [whamlet|
           <head>
                <title> #{var}
-          <header>
+          <header class="ccg_header">
               <b>[#{var}]</b>
                    <br>&ensp;answer : #{ans}
                    $forall pr <- pre
@@ -104,30 +123,41 @@ getJsemR var = do
 getInputR :: Handler Html
 getInputR = do
    sentence <- runInputGet $ SP.InputSentences
-               <$> ireq textField "sen"
+                         <$> ireq textField "sen"
+                         <*> ireq intField "sen_s"
+                         <*> ireq intField "sen_e"
+                         <*> ireq intField "sen_b"
    let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
    let a_sen = T.fromStrict $ SP.input_Sentence sentence
    let count = SP.sentence_filter_count $ SP.input_Sentence sentence
 -- type Chart = M.Map (Int, Int) [CCG.Node] 
 -- k：(Int, Int) , v：[CCG.Node] ???
-   let chart = unsafePerformIO $ L.parse 32 a_sen
+   let beam = SP.sen_beam sentence
+   let chart = unsafePerformIO $ L.parse beam a_sen
 -- nodes は Maybe [CCG.Node]のはず
-   let maybe_nodes = Map.lookup (0,2) chart
+   let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
    let nodes = SP.chart2nodes maybe_nodes
    if nodes == [] then  defaultLayout $ do [whamlet| <h2> ノードないよ|]
     else do
       defaultLayout $ do
         [whamlet|
-           <header>
-              <p>&ensp;<b>入力文：#{a_sen}</b>
-              <form action=@{InputR}>
-                <p>&ensp;文を入力してね！
-                   <input type=text name=sen>
-                   <input type=submit value="送信">
+           <header class="ccg_header">
+              <p>&ensp;<b>入力文：#{a_sen}</b> &ensp; （開始位置：#{SP.sen_start sentence} ,終了位置：#{SP.sen_end sentence}）　現在のbeam : #{beam}
+                 <form action=@{InputR}>
+                     <p>
+                     &ensp;入力文
+                     <input type=int name=sen>
+                     （開始位置
+                     <input type=int name=sen_s class="number_input">
+                     , 終了位置
+                     <input type=int name=sen_e class="number_input">
+                     ）beam
+                     <input type=int name=sen_b class="number_input">
+                     <input type=submit value="Let's ChartParser !" class="input_submit">
            <body onLoad="koushi(#{count},#{string_sen})">
              <main id="main">
                 <p>
-                <canvas id="sample" width="1000" height="800" style="background-color:yellow;">
+                <canvas id="canvas" width="1000" height="800">
                 <p>
                 <input type="checkbox" id="cat-toggle"/>
                 <input type="checkbox" id="sem-toggle"/>
@@ -139,6 +169,7 @@ getInputR = do
         myFunction
 
 
+    
 --CSS（cassius）
 myDesign :: Widget
 myDesign = do
@@ -149,8 +180,6 @@ myFunction :: Widget
 myFunction = do
     toWidget $(juliusFile "templates/express.julius")
    
-
- 
 
 main :: IO ()
 main = warp 3000 App
