@@ -16,9 +16,24 @@ function toggle(id){
               buttonID.innerHTML = "+";
 }};
 
- function koushi(count,sen) {
-                 var canvas = document.getElementById('sample');
-                 var context = canvas.getContext('2d');
+//チャート格子作る
+
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+
+//canvasの枠
+var rect = canvas.getBoundingClientRect();
+/*var h = 0;
+var w = 0;
+var posX = 0;
+var posY = 0;*/
+//Flag trueでマウスが要素に乗っているとみなす
+var senlist = [];
+var drawlist = [];
+//var chartflag = [];
+var targetFlag = false;
+
+function koushi(count,sen) {
                  context.beginPath();
                  context.font = "14px 'ＭＳ ゴシック'";
                  //文字列
@@ -34,10 +49,16 @@ function toggle(id){
                  //文の最後指定
                  var t = count;
                  //格子作る
-                 for(var h = height; h > 0; h-=100){
-    	                for (var w = width; w > 0; w-=100) {
+                 //context.fillStyle = "#ffffff";
+                 for(h = height; h > 0; h-=100){
+    	                for (w = width; w > 0; w-=100) {
+    	                      //targetFlag = true;
+    	                      //chartflag.push(true);
+    	                      //格子の正方形作る
                               context.rect(w,h,100,100);
                               context.fillText(separate_sen(sen,a,t), w+15, h+20);
+                              senlist.push(separate_sen(sen,a,t));
+                              //drawlist.push([w+50,h+50]);
                               a--;
                              }
                       width -= 100;
@@ -45,14 +66,56 @@ function toggle(id){
                       flag--;
                       a = flag;
                 }
-                context.stroke();
-        
+                //posX = w;
+                //posY = h;
+               // context.fillStyle = "#000000";
+                context.stroke();       
 }
 
 
-//配列
+//文字数分ける
 function separate_sen(sen,h,t){
       var result = sen.substring(h,t)
       return result
 }
+
+     
+ //canvas 入った時    
+//canvas.addEventListener('mouseover', mouseOver, false);
+
+canvas.addEventListener('mousemove', mouseMove, false);
+
+//canvas 抜けた時
+//canvas.addEventListener('mouseout', mouseOut, false);
+
+function mouseMove(e){
+     if(targetFlag == true){
+           canvas.addEventListener('mouseover', mouseOver, false);
+           targetFlag = false;
+    }else{
+          canvas.addEventListener('mouseout', mouseOut, false);
+          targetFlag = true;
+    }
+}
+
+function mouseOver(e){
+    //context.fillStyle = "#00ffff";
+           canvas.style.backgroundColor = "white";
+}
+
+function mouseOut(e){
+    //context.fillStyle = "#ffffff";
+    canvas.style.backgroundColor = "yellow";
+}
+  
+
+canvas.addEventListener('click', function(e){
+    /*var viewX = e.clientX - rect.left;
+    var viewY = e.clientY - rect.top;
+    console.log(viewX, viewY);*/
+    console.log(senlist);
+    // console.log(drawlist);
+},false);
+
+
 
