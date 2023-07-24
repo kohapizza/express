@@ -18,24 +18,32 @@ function toggle(id){
 
 //チャート格子作る
 
-var canvas = document.getElementById('canvas');
-var context = canvas.getContext('2d');
+function express_chart(a,b){
+   sen_count = a;
+   sentence = b;
+   koushi(a,b);
+};
 
-//canvasの枠
-var rect = canvas.getBoundingClientRect();
-/*var h = 0;
-var w = 0;
-var posX = 0;
-var posY = 0;*/
-//Flag trueでマウスが要素に乗っているとみなす
-var senlist = [];
-var drawlist = [];
-//var chartflag = [];
-var targetFlag = false;
+var stage = new createjs.Stage("canvas");
+var dot = new createjs.Shape();
+dot.graphics.beginFill("black").drawCircle(0,0,3);
+stage.addChild(dot);
+
+ 
+ // マウスオーバーを有効にする
+ stage.enableMouseOver();
+
+var shapeList = [];
+var senList = [];
+var sent = '';
+var sen_start = 0;
+var sen_end = 0;
+var nodeList = [];
+var nodes = [];
+
+
 
 function koushi(count,sen) {
-                 context.beginPath();
-                 context.font = "14px 'ＭＳ ゴシック'";
                  //文字列
                  var st = count;
                  //たて
@@ -48,74 +56,90 @@ function koushi(count,sen) {
                  var flag = count - 1;
                  //文の最後指定
                  var t = count;
+                 var i = 0;
                  //格子作る
                  //context.fillStyle = "#ffffff";
                  for(h = height; h > 0; h-=100){
     	                for (w = width; w > 0; w-=100) {
-    	                      //targetFlag = true;
-    	                      //chartflag.push(true);
+    	                      var shape = new createjs.Shape();
     	                      //格子の正方形作る
-                              context.rect(w,h,100,100);
-                              context.fillText(separate_sen(sen,a,t), w+15, h+20);
-                              senlist.push(separate_sen(sen,a,t));
-                              //drawlist.push([w+50,h+50]);
+    	                      shape.graphics.beginStroke("gray");
+    	                      shape.graphics.beginFill("white");
+    	                      shape.graphics.setStrokeStyle(3);
+                              shape.graphics.drawRect(0,0,100,100);
+                              shape.x = w;
+                              shape.y = h;
+                              stage.addChild(shape);
+                              shapeList[i] = shape;
+                              //nodeList[i] = node;
+                              //テキスト
+                              var sen_t = new createjs.Text("", "14px 'ＭＳ ゴシック'", "black");
+                              var s = separate_sen(sen,a,t);
+                              sen_t.text = s;
+                              sen_t.x = w + 15;
+                              sen_t.y = h + 30;
+                              stage.addChild(sen_t); 
+                              shape.addEventListener("click",handleClick);
+                              senList.push({sentence:s,start:a,end:t});
                               a--;
+                              i++;
                              }
                       width -= 100;
                       t--;
                       flag--;
                       a = flag;
                 }
-                //posX = w;
-                //posY = h;
-               // context.fillStyle = "#000000";
-                context.stroke();       
-}
+                stage.update();
+};
 
 
 //文字数分ける
 function separate_sen(sen,h,t){
       var result = sen.substring(h,t)
       return result
-}
+};
 
-     
- //canvas 入った時    
-//canvas.addEventListener('mouseover', mouseOver, false);
 
-canvas.addEventListener('mousemove', mouseMove, false);
-
-//canvas 抜けた時
-//canvas.addEventListener('mouseout', mouseOut, false);
-
-function mouseMove(e){
-     if(targetFlag == true){
-           canvas.addEventListener('mouseover', mouseOver, false);
-           targetFlag = false;
-    }else{
-          canvas.addEventListener('mouseout', mouseOut, false);
-          targetFlag = true;
-    }
-}
-
-function mouseOver(e){
-    //context.fillStyle = "#00ffff";
-           canvas.style.backgroundColor = "white";
-}
-
-function mouseOut(e){
-    //context.fillStyle = "#ffffff";
-    canvas.style.backgroundColor = "yellow";
-}
+function handleClick(event){
+    var shape = event.currentTarget;
+    for(var i = 0; i < shapeList.length ; i++){
+              if(shapeList[i] == shape){
+                   sent = senList[i].sentence;
+                   sen_start = senList[i].start;
+                   sen_end = senList[i].end;
+                   //nodes = nodeList[i];
+                   console.log(nodes);
+                 }
+     }
+};
   
-
-canvas.addEventListener('click', function(e){
-    /*var viewX = e.clientX - rect.left;
-    var viewY = e.clientY - rect.top;
-    console.log(viewX, viewY);*/
-    console.log(senlist);
-    // console.log(drawlist);
-},false);
-
+createjs.Ticker.addEventListener("tick", handleTick);
+function handleTick(event){
+   for(var i = 0; i < shapeList.length; i++){
+           var point = shapeList[i].globalToLocal(stage.mouseX, stage.mouseY);
+           var isHit = shapeList[i].hitTest(point.x, point.y);
+           //ドットにマウス追わせる
+            dot.x = stage.mouseX;
+            dot.y = stage.mouseY;
+            //ドットと図形重なるかどうか判定
+             if(isHit == true){
+                           shapeList[i].graphics
+                                   .clear()
+                                   .beginFill("gray")
+                                   .beginStroke("gray")
+    	                           .setStrokeStyle(3)
+                                   .drawRect(0,0,100,100);
+                           
+               }else{        
+                            shapeList[i].graphics
+                                    .clear()
+                                    .beginFill("white")
+                                    .beginStroke("gray")
+    	                            .setStrokeStyle(3)
+                                    .drawRect(0,0,100,100);
+               }
+     }
+    stage.update();
+};
 
 
