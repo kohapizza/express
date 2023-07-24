@@ -32,9 +32,12 @@ mkYesod "App" [parseRoutes|
 / HomeR GET
 /jsem/#String JsemR GET
 /input InputR GET
+--/link LinkR GET
+--/chart/#T.Text/#Int/#Int ChartR GET
 |]
 
 instance Yesod App
+--      approot = ApprootStatic "http://localhost:3000"
 
 instance RenderMessage App FormMessage where
    renderMessage _ _ = defaultFormMessage
@@ -59,16 +62,12 @@ getHomeR = do
              <form action=@{InputR}>
                    入力文
                    <input type=text name=sen>
-              <p>
-                   （開始位置
-                   <input type=int name=sen_s class="number_input">
-                   , 終了位置
-                   <input type=int name=sen_e class="number_input">）
                <p>    
                    beam
                    <input type=int name=sen_b class="number_input">
                <p>     
                    <input type=submit value="Let's ChartParser !" class="input_submit">
+                  
    |]
    myDesign
    myFunction
@@ -124,50 +123,78 @@ getInputR :: Handler Html
 getInputR = do
    sentence <- runInputGet $ SP.InputSentences
                          <$> ireq textField "sen"
-                         <*> ireq intField "sen_s"
-                         <*> ireq intField "sen_e"
+--                         <*> ireq intField "sen_s"
+--                         <*> ireq intField "sen_e"
                          <*> ireq intField "sen_b"
+--   homepath <- getResourcePath HomeR
+--   pagepath1 <- getResourcePath $ JsemR String
+--   pagepath2 <- getResourcePath $ ChartR String Int Int
    let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
    let a_sen = T.fromStrict $ SP.input_Sentence sentence
    let count = SP.sentence_filter_count $ SP.input_Sentence sentence
+ --  let list = senList;
+{-   render <- getUrlRender
+   render2 <- getUrlRenderParams
+   path   <- getResourcePath HomeR
+   path2 <- return $ render InputR
+   path3 <- return $ render2 a_sen 0 4 ChartR -}
 -- type Chart = M.Map (Int, Int) [CCG.Node] 
 -- k：(Int, Int) , v：[CCG.Node] ???
    let beam = SP.sen_beam sentence
+-- chart :: [CCG.Node]
    let chart = unsafePerformIO $ L.parse beam a_sen
 -- nodes は Maybe [CCG.Node]のはず
-   let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
+   --let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
+   let maybe_nodes = Map.lookup (0,1) chart
    let nodes = SP.chart2nodes maybe_nodes
    if nodes == [] then  defaultLayout $ do [whamlet| <h2> ノードないよ|]
-    else do
+   else do
       defaultLayout $ do
+        addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
         [whamlet|
            <header class="ccg_header">
-              <p>&ensp;<b>入力文：#{a_sen}</b> &ensp; （開始位置：#{SP.sen_start sentence} ,終了位置：#{SP.sen_end sentence}）　現在のbeam : #{beam}
+               <p>&ensp;<b>入力文：#{a_sen}</b> &ensp; 現在のbeam : #{beam}
                  <form action=@{InputR}>
                      <p>
-                     &ensp;入力文
-                     <input type=int name=sen>
-                     （開始位置
-                     <input type=int name=sen_s class="number_input">
-                     , 終了位置
-                     <input type=int name=sen_e class="number_input">
-                     ）beam
+                     beam
                      <input type=int name=sen_b class="number_input">
                      <input type=submit value="Let's ChartParser !" class="input_submit">
-           <body onLoad="koushi(#{count},#{string_sen})">
-             <main id="main">
+           <body onLoad="express_chart(#{count},#{string_sen})">
+              <main id="main">
                 <p>
                 <canvas id="canvas" width="1000" height="800">
                 <p>
-                <input type="checkbox" id="cat-toggle"/>
-                <input type="checkbox" id="sem-toggle"/>
-                <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
-                <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>       
-                       ^{mapM_ WE.widgetize $ nodes}             
+                     <div id="chartexpress">
+                                    <!--^{mapM_ WE.widgetize $ nodes}-->
         |]
         myDesign
         myFunction
+ 
 
+
+{-getChartR :: T.Text -> Int -> Int -> Handler Html
+getChartR :: Handler Html
+getChartR sentence senS senE = do
+     let chart = unsafePerformIO $ L.parse 32 sentence
+     -- nodes は Maybe [CCG.Node]のはず
+     --let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
+     let maybe_nodes = Map.lookup (senS,senE) chart
+     let nodes = SP.chart2nodes maybe_nodes
+     defaultLayout $ do
+        addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
+        [whamlet|
+           <body>
+              <main id="main">
+                <input type="checkbox" id="cat-toggle"/>
+                <input type="checkbox" id="sem-toggle"/>
+                <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
+                <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>
+                     <div id="chartexpress">
+                                      ^{mapM_ WE.widgetize $ nodes}
+        |]
+        myDesign
+        myFunction -}
+        
 
     
 --CSS（cassius）
