@@ -38,18 +38,20 @@ var senList = [];
 var sent = '';
 var sen_start = 0;
 var sen_end = 0;
-var nodeList = [];
-var nodes = [];
+var nodesList = [];
+var sbeam = 0;
 
 
 
 function koushi(count,sen) {
+                 //sent = BT.fromText sen;
+                 //sbeam = beam;
                  //文字列
                  var st = count;
                  //たて
-                 var height = st*100;
+                 var height = st*150;
                  //横へってくマス
-                 var width = st*100;
+                 var width = st*150;
                  //文の先頭指定
                  var a = count - 1;
                  //文の先頭位置を戻す役割
@@ -58,22 +60,23 @@ function koushi(count,sen) {
                  var t = count;
                  var i = 0;
                  //格子作る
+                 //nodesList.push(nodes);
                  //context.fillStyle = "#ffffff";
-                 for(h = height; h > 0; h-=100){
-    	                for (w = width; w > 0; w-=100) {
+                 for(h = height; h > 0; h-=150){
+    	                for (w = width; w > 0; w-=150) {
     	                      var shape = new createjs.Shape();
     	                      //格子の正方形作る
-    	                      shape.graphics.beginStroke("gray");
+    	                      shape.graphics.beginStroke("darkorange");
     	                      shape.graphics.beginFill("white");
     	                      shape.graphics.setStrokeStyle(3);
-                              shape.graphics.drawRect(0,0,100,100);
+                              shape.graphics.drawRect(0,0,150,150);
                               shape.x = w;
                               shape.y = h;
                               stage.addChild(shape);
                               shapeList[i] = shape;
                               //nodeList[i] = node;
                               //テキスト
-                              var sen_t = new createjs.Text("", "14px 'ＭＳ ゴシック'", "black");
+                              var sen_t = new createjs.Text("", "18px 'ＭＳ ゴシック'", "black");
                               var s = separate_sen(sen,a,t);
                               sen_t.text = s;
                               sen_t.x = w + 15;
@@ -84,7 +87,7 @@ function koushi(count,sen) {
                               a--;
                               i++;
                              }
-                      width -= 100;
+                      width -= 150;
                       t--;
                       flag--;
                       a = flag;
@@ -100,15 +103,19 @@ function separate_sen(sen,h,t){
 };
 
 
+
 function handleClick(event){
     var shape = event.currentTarget;
     for(var i = 0; i < shapeList.length ; i++){
               if(shapeList[i] == shape){
-                   sent = senList[i].sentence;
-                   sen_start = senList[i].start;
-                   sen_end = senList[i].end;
-                   //nodes = nodeList[i];
-                   console.log(nodes);
+                  //SeparateSens {
+                   //sent = BT.fromText senList[i].sentence;                 
+                   senStart = senList[i].start;
+                   senEnd = senList[i].end;
+                  // }
+                   console.log(senStart, senEnd, "@{ChartR" 私は学生だ。" 32 0 1}");
+                   let option = 'width=1000,height=600,left=300,top=300';
+                   window.open("@{ChartR" 私は学生だ。" 32 0 1}", "mywindow",option);
                  }
      }
 };
@@ -125,18 +132,18 @@ function handleTick(event){
              if(isHit == true){
                            shapeList[i].graphics
                                    .clear()
-                                   .beginFill("gray")
-                                   .beginStroke("gray")
+                                   .beginFill("orange")
+                                   .beginStroke("darkorange")
     	                           .setStrokeStyle(3)
-                                   .drawRect(0,0,100,100);
+                                   .drawRect(0,0,150,150);
                            
                }else{        
                             shapeList[i].graphics
                                     .clear()
                                     .beginFill("white")
-                                    .beginStroke("gray")
+                                    .beginStroke("darkorange")
     	                            .setStrokeStyle(3)
-                                    .drawRect(0,0,100,100);
+                                    .drawRect(0,0,150,150);
                }
      }
     stage.update();
