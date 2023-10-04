@@ -10,6 +10,7 @@
 
 import  qualified Data.Text as StrictT
 import  qualified Data.Text.Lazy as T
+import  qualified Data.Text.Internal.Builder as BT
 --import  Data.String.IsString (Char)
 import  qualified Data.Map as Map
 import  qualified Data.Maybe as Maybe --base
@@ -21,6 +22,7 @@ import  Text.Cassius
 import  Text.Julius
 import  qualified Lightblue as L
 import  qualified Sentence_process as SP
+--import qualified Parser.CCG as CCG
 import  qualified WidgetExpress as WE
 import  Control.Monad (forM_)           --base
 import  Control.Applicative
@@ -32,8 +34,10 @@ mkYesod "App" [parseRoutes|
 / HomeR GET
 /jsem/#String JsemR GET
 /input InputR GET
+--/chart ChartR GET
 --/link LinkR GET
---/chart/#T.Text/#Int/#Int ChartR GET
+--/chart/sentence/#T.Text/beam/#Int/senstart/#Int/senend/#Int ChartR GET
+/chart/#T.Text/#Int/#Int/#Int ChartR GET
 |]
 
 instance Yesod App
@@ -118,6 +122,17 @@ getJsemR var = do
          myFunction
 
 
+--data SeparateSens = SeparateSens {
+--   sepsen :: T.Text,
+{--senStart :: Int
+senStart = 0;
+
+senEnd :: Int
+senEnd = 1;
+deriving (Eq, Show) --}
+
+--nodeSeparateSens :: SeparateSens
+--nodeSeparateSens = SeparateSens { sepsen = "", senStart = 0, senEnd = 1}
      
 getInputR :: Handler Html
 getInputR = do
@@ -130,7 +145,7 @@ getInputR = do
 --   pagepath1 <- getResourcePath $ JsemR String
 --   pagepath2 <- getResourcePath $ ChartR String Int Int
    let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
-   let a_sen = T.fromStrict $ SP.input_Sentence sentence
+   let text_sen = T.fromStrict $ SP.input_Sentence sentence
    let count = SP.sentence_filter_count $ SP.input_Sentence sentence
  --  let list = senList;
 {-   render <- getUrlRender
@@ -140,44 +155,61 @@ getInputR = do
    path3 <- return $ render2 a_sen 0 4 ChartR -}
 -- type Chart = M.Map (Int, Int) [CCG.Node] 
 -- k：(Int, Int) , v：[CCG.Node] ???
+--   let nodeSeparateSens = SeparateSens { sepsen = "", senStart = 0, senEnd = 0}
    let beam = SP.sen_beam sentence
 -- chart :: [CCG.Node]
-   let chart = unsafePerformIO $ L.parse beam a_sen
+   let chart = unsafePerformIO $ L.parse beam text_sen
+  -- let sens = senStart
+ --  let sene = senEnd
 -- nodes は Maybe [CCG.Node]のはず
    --let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
-   let maybe_nodes = Map.lookup (0,1) chart
-   let nodes = SP.chart2nodes maybe_nodes
-   if nodes == [] then  defaultLayout $ do [whamlet| <h2> ノードないよ|]
-   else do
-      defaultLayout $ do
+  -- let maybe_nodes = Map.lookup (sens, sene) chart
+  -- let nodes = SP.chart2nodes maybe_nodes
+  -- if nodes == [] then  defaultLayout $ do [whamlet| <h2> ノードないよ|]
+  -- else do
+   defaultLayout $ do
         addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
         [whamlet|
            <header class="ccg_header">
-               <p>&ensp;<b>入力文：#{a_sen}</b> &ensp; 現在のbeam : #{beam}
+               <p>&ensp;<b>入力文：#{text_sen}</b> &ensp; 現在のbeam : #{beam}
                  <form action=@{InputR}>
                      <p>
                      beam
                      <input type=int name=sen_b class="number_input">
                      <input type=submit value="Let's ChartParser !" class="input_submit">
-           <body onLoad="express_chart(#{count},#{string_sen})">
+           <body onLoad="express_chart(#{count},#{string_sen},#{beam})">
               <main id="main">
                 <p>
-                <canvas id="canvas" width="1000" height="800">
+                <canvas id="canvas" width="1200" height="1200">
                 <p>
                      <div id="chartexpress">
-                                    <!--^{mapM_ WE.widgetize $ nodes}-->
+                                  <!-- ^{mapM_ WE.widgetize $ nodes} -->
         |]
         myDesign
         myFunction
  
 
 
-{-getChartR :: T.Text -> Int -> Int -> Handler Html
-getChartR :: Handler Html
-getChartR sentence senS senE = do
-     let chart = unsafePerformIO $ L.parse 32 sentence
+
+
+--getExchartR ::  Handler ()
+--getExchartR  = redirect (ChartR text_sen beam senStart senEnd)
+    
+
+
+
+
+
+getChartR :: T.Text -> Int -> Int -> Int -> Handler Html
+--getChartR :: Handler Html
+getChartR sentences beams senS senE = do
+--getChartR = do
+     --let chart = unsafePerformIO $ L.parse 32 sentence
      -- nodes は Maybe [CCG.Node]のはず
      --let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
+    -- let beam = SP.sen_beam sentence
+-- chart :: [CCG.Node]
+     let chart = unsafePerformIO $ L.parse beams sentences
      let maybe_nodes = Map.lookup (senS,senE) chart
      let nodes = SP.chart2nodes maybe_nodes
      defaultLayout $ do
@@ -193,7 +225,7 @@ getChartR sentence senS senE = do
                                       ^{mapM_ WE.widgetize $ nodes}
         |]
         myDesign
-        myFunction -}
+        myFunction 
         
 
     
