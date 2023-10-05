@@ -147,14 +147,7 @@ getInputR = do
    let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
    let text_sen = T.fromStrict $ SP.input_Sentence sentence
    let count = SP.sentence_filter_count $ SP.input_Sentence sentence
- --  let list = senList;
-{-   render <- getUrlRender
-   render2 <- getUrlRenderParams
-   path   <- getResourcePath HomeR
-   path2 <- return $ render InputR
-   path3 <- return $ render2 a_sen 0 4 ChartR -}
--- type Chart = M.Map (Int, Int) [CCG.Node] 
--- k：(Int, Int) , v：[CCG.Node] ???
+ -- k：(Int, Int) , v：[CCG.Node] ???
 --   let nodeSeparateSens = SeparateSens { sepsen = "", senStart = 0, senEnd = 0}
    let beam = SP.sen_beam sentence
 -- chart :: [CCG.Node]
@@ -201,16 +194,11 @@ getInputR = do
 
 
 getChartR :: T.Text -> Int -> Int -> Int -> Handler Html
---getChartR :: Handler Html
 getChartR sentences beams senS senE = do
---getChartR = do
-     --let chart = unsafePerformIO $ L.parse 32 sentence
-     -- nodes は Maybe [CCG.Node]のはず
-     --let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
-    -- let beam = SP.sen_beam sentence
--- chart :: [CCG.Node]
+    -- chart :: [CCG.Node]
      let chart = unsafePerformIO $ L.parse beams sentences
      let maybe_nodes = Map.lookup (senS,senE) chart
+    -- nodes は Maybe [CCG.Node]のはず
      let nodes = SP.chart2nodes maybe_nodes
      defaultLayout $ do
         addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"

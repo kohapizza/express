@@ -36,16 +36,16 @@ stage.addChild(dot);
 var shapeList = [];
 var senList = [];
 var sent = '';
-var sen_start = 0;
-var sen_end = 0;
+var senStart = 0;
+var senEnd = 0;
 var nodesList = [];
 var sbeam = 0;
 
 
 
-function koushi(count,sen) {
-                 //sent = BT.fromText sen;
-                 //sbeam = beam;
+function koushi(count,sen,beam) {
+                 sent = sen;
+                 sbeam = beam;
                  //文字列
                  var st = count;
                  //たて
@@ -106,6 +106,8 @@ function separate_sen(sen,h,t){
 
 function handleClick(event){
     var shape = event.currentTarget;
+    //var inputsen = sent;
+    //var sebeam = sbeam;
     for(var i = 0; i < shapeList.length ; i++){
               if(shapeList[i] == shape){
                   //SeparateSens {
@@ -113,9 +115,10 @@ function handleClick(event){
                    senStart = senList[i].start;
                    senEnd = senList[i].end;
                   // }
-                   console.log(senStart, senEnd, "@{ChartR" 私は学生だ。" 32 0 1}");
+                   console.log(senStart, senEnd, "http://localhost:3000/chart/" + sent + "/" + sbeam + "/" + senStart + "/" + senEnd);
                    let option = 'width=1000,height=600,left=300,top=300';
-                   window.open("@{ChartR" 私は学生だ。" 32 0 1}", "mywindow",option);
+                   window.open("http://localhost:3000/chart/私は学生だ。/32/" + senStart + "/" + senEnd, "mywindow",option);
+                   //window.open("http://localhost:3000/chart/" + inputsen + "/" + sebeam + "/" + senStart + "/" + senEnd, "mywindow",option);
                  }
      }
 };
