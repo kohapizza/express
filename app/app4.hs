@@ -10,7 +10,7 @@
 
 import  qualified Data.Text as StrictT
 import  qualified Data.Text.Lazy as T
-import  qualified Data.Text.Internal.Builder as BT
+--import  qualified Data.Text.Internal.Builder as BT
 --import  Data.String.IsString (Char)
 import  qualified Data.Map as Map
 import  qualified Data.Maybe as Maybe --base
@@ -37,7 +37,7 @@ mkYesod "App" [parseRoutes|
 --/chart ChartR GET
 --/link LinkR GET
 --/chart/sentence/#T.Text/beam/#Int/senstart/#Int/senend/#Int ChartR GET
-/chart/#T.Text/#Int/#Int/#Int ChartR GET
+/chart/#String/#Int/#Int/#Int ChartR GET
 |]
 
 instance Yesod App
@@ -68,7 +68,7 @@ getHomeR = do
                    <input type=text name=sen>
                <p>    
                    beam
-                   <input type=int name=sen_b class="number_input">
+                   <input type=string name=sen_b class="number_input">
                <p>     
                    <input type=submit value="Let's ChartParser !" class="input_submit">
                   
@@ -76,12 +76,6 @@ getHomeR = do
    myDesign
    myFunction
 
---sentenceForm :: Html -> MForm Handler (FormResult InputSentences, Widget)
---sentenceForm = renderDivs $ InputSentences
- --   <$> areq textField "sen" Nothing
---    <*> areq intField "sen_s" 0
---    <*> areq intField "sen_e" 4
---    <*> areq urlField "beam" 32
 
 
 getJsemR :: String -> Handler Html
@@ -122,61 +116,39 @@ getJsemR var = do
          myFunction
 
 
---data SeparateSens = SeparateSens {
---   sepsen :: T.Text,
-{--senStart :: Int
-senStart = 0;
-
-senEnd :: Int
-senEnd = 1;
-deriving (Eq, Show) --}
-
---nodeSeparateSens :: SeparateSens
---nodeSeparateSens = SeparateSens { sepsen = "", senStart = 0, senEnd = 1}
      
 getInputR :: Handler Html
 getInputR = do
    sentence <- runInputGet $ SP.InputSentences
                          <$> ireq textField "sen"
---                         <*> ireq intField "sen_s"
---                         <*> ireq intField "sen_e"
                          <*> ireq intField "sen_b"
---   homepath <- getResourcePath HomeR
---   pagepath1 <- getResourcePath $ JsemR String
---   pagepath2 <- getResourcePath $ ChartR String Int Int
    let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
    let text_sen = T.fromStrict $ SP.input_Sentence sentence
+--"。"を取り除いた文字数
    let count = SP.sentence_filter_count $ SP.input_Sentence sentence
- -- k：(Int, Int) , v：[CCG.Node] ???
---   let nodeSeparateSens = SeparateSens { sepsen = "", senStart = 0, senEnd = 0}
    let beam = SP.sen_beam sentence
--- chart :: [CCG.Node]
    let chart = unsafePerformIO $ L.parse beam text_sen
-  -- let sens = senStart
- --  let sene = senEnd
--- nodes は Maybe [CCG.Node]のはず
-   --let maybe_nodes = Map.lookup (SP.sen_start sentence, SP.sen_end sentence) chart
-  -- let maybe_nodes = Map.lookup (sens, sene) chart
-  -- let nodes = SP.chart2nodes maybe_nodes
-  -- if nodes == [] then  defaultLayout $ do [whamlet| <h2> ノードないよ|]
-  -- else do
-   defaultLayout $ do
+--   type ChartMap = Map.Map Int [CCG.Node]
+   let chartmap = SP.make_onechartlist 0 1 chart Map.empty
+   let maybechart = Map.lookup 1 chartmap
+   let charts = SP.chart2nodes maybechart
+   let cat = SP.expresscat charts
+   --putStrLn chart
+   if charts == [] then  defaultLayout $ do [whamlet| <h2>ないよ|]
+   else
+      defaultLayout $ do
         addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
         [whamlet|
            <header class="ccg_header">
-               <p>&ensp;<b>入力文：#{text_sen}</b> &ensp; 現在のbeam : #{beam}
-                 <form action=@{InputR}>
-                     <p>
-                     beam
-                     <input type=int name=sen_b class="number_input">
-                     <input type=submit value="Let's ChartParser !" class="input_submit">
+               <p>&ensp;<b>入力文：#{text_sen}</b> 
+               <p>&ensp; 現在のbeam : #{beam}
            <body onLoad="express_chart(#{count},#{string_sen},#{beam})">
               <main id="main">
                 <p>
                 <canvas id="canvas" width="1200" height="1200">
-                <p>
-                     <div id="chartexpress">
-                                  <!-- ^{mapM_ WE.widgetize $ nodes} -->
+                <div id="chartexpress">
+                      #{show cat}
+                      ^{mapM_ WE.widgetize $ charts}
         |]
         myDesign
         myFunction
@@ -185,21 +157,19 @@ getInputR = do
 
 
 
---getExchartR ::  Handler ()
---getExchartR  = redirect (ChartR text_sen beam senStart senEnd)
-    
 
-
-
-
-
-getChartR :: T.Text -> Int -> Int -> Int -> Handler Html
+getChartR :: String -> Int -> Int -> Int -> Handler Html
 getChartR sentences beams senS senE = do
+    -- T.pack : String -> Text
+     let lazytext_sen = T.pack $ sentences
+     --let int_beam = StrictT.length $ StrictT.pack $ stringbeams
     -- chart :: [CCG.Node]
-     let chart = unsafePerformIO $ L.parse beams sentences
+     --let chart = unsafePerformIO $ L.parse int_beam lazytext_sen
+     let chart = unsafePerformIO $ L.parse beams lazytext_sen
+     -- maybe_nodes : Maybe [CCG.Node]
      let maybe_nodes = Map.lookup (senS,senE) chart
-    -- nodes は Maybe [CCG.Node]のはず
-     let nodes = SP.chart2nodes maybe_nodes
+    -- nodes : [CCG.Node]
+     let nodes = SP.chart2nodes maybe_nodes    
      defaultLayout $ do
         addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
         [whamlet|
