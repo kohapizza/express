@@ -6,6 +6,8 @@ module Sentence_process (
    Test(..),
    InputSentences(..),
  --type
+   ChartMap,
+   emptychart,
    jsemData,
    emptyTest,
  -- function
@@ -14,7 +16,10 @@ module Sentence_process (
    eithertostring,
    sentence_filter_count,
    sentence_filter,
-   chart2nodes
+   make_chartlist,
+   make_onechartlist,
+   chart2nodes,
+   expresscat
 ) where
 
 import  qualified Data.Text as StrictT
@@ -23,7 +28,9 @@ import  qualified Data.Map as Map
 import  System.IO.Unsafe (unsafePerformIO)
 import  qualified JSeM
 import  qualified Corpus.JSeM as C
-import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
+--import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
+import qualified Parser.CCG as CCG
+import  qualified Parser.ChartParser as CP
 
 --Test：JSeMDataからjsem_id・answer・premises・hypothesisをとったもの
 data Test = Test{
@@ -37,8 +44,8 @@ data Test = Test{
 --Sentences : 入力文
 data InputSentences = InputSentences {
     input_Sentence :: StrictT.Text,
-    sen_start :: Int,
-    sen_end :: Int,
+--    sen_start :: Int,
+--    sen_end :: Int,
     sen_beam :: Int
 } deriving (Eq,Show)
 
@@ -46,6 +53,11 @@ data InputSentences = InputSentences {
 type Sentence = T.Text
 
 type SentenceMap = Map.Map Int Sentence
+
+-- チャートMap
+type ChartMap = Map.Map Int [CCG.Node]
+emptychart :: ChartMap
+emptychart = Map.fromList $ []
 
 
 jsemData :: [C.JSeMData]
@@ -78,12 +90,14 @@ eithertostring result =
   case result of Left sentence -> sentence
                  Right sentence -> sentence
 
--- '。'を取り除く
+
+-- '。'を取り除いた文字数
 sentence_filter_count :: StrictT.Text -> Int
 sentence_filter_count sentence = case (StrictT.null sentence) of
      True -> 0
      False ->  let sen_filter = StrictT.filter (/='。') sentence
                     in StrictT.length sen_filter
+
 
 -- (') を文の先頭と末尾につける
 sentence_filter :: StrictT.Text -> String
@@ -95,10 +109,58 @@ sentence_filter sentence = case (StrictT.null sentence) of
                     in StrictT.unpack plus_sen2
 
 
+-- let maybe_nodes = Map.lookup (senS,senE) chart
+-- type Chart = M.Map (Int,Int) [CCG.Node]
+make_chartlist :: Int -> Int -> Int -> CP.Chart -> ChartMap -> ChartMap
+make_chartlist bd num count lightbluechart chartmap = 
+     let conum = count
+     in
+      case bd of
+         conum -> case conum of 
+                                    count  ->  chartmap
+                                    otherwise   -> 
+                                         let conum = count 
+                                         in let chartlist =lookupChart (bd+1) conum lightbluechart
+                                          in
+                                           if num == 1  then let chartmap = insert_chartlist num chartlist chartmap  
+                                                                         in make_chartlist bd num count lightbluechart chartmap
+                                                               else let chartmap = insert_chartlist (num+1) chartlist chartmap  
+                                                                    in make_chartlist bd num count lightbluechart chartmap
+         otherwise ->  case conum of 
+                              count -> let chartlist =lookupChart bd conum lightbluechart 
+                                                in insert_chartlist num chartlist chartmap
+                              otherwise -> let chartlist = lookupChart bd conum lightbluechart 
+                                            in
+                                            if num == 1 then let chartmap = insert_chartlist num chartlist chartmap  in make_chartlist bd num count lightbluechart chartmap
+                                                                 else let chartmap = insert_chartlist (num+1) chartlist chartmap  in make_chartlist bd num count lightbluechart chartmap
 
-chart2nodes :: Maybe [Node] -> [Node]
+make_onechartlist :: Int -> Int -> CP.Chart -> ChartMap -> ChartMap
+make_onechartlist start end lbnode chartmap =
+   let node = lookupChart start end lbnode
+     in insert_chartlist 1 node chartmap
+
+ 
+lookupChart :: Int -> Int -> CP.Chart -> [CCG.Node]
+lookupChart bnum num lightbluechart = 
+   let chart = Map.lookup (bnum, num) lightbluechart
+     in chart2nodes chart
+
+insert_chartlist :: Int -> [CCG.Node] -> ChartMap -> ChartMap
+insert_chartlist num chartlist chartmap = case chartmap of 
+   empty -> Map.insert num chartlist chartmap
+   otherwise -> Map.insert (num + 1) chartlist chartmap
+
+
+chart2nodes :: Maybe [CCG.Node] -> [CCG.Node]
 chart2nodes nodes = case nodes of
        Nothing -> []
        Just nodes -> nodes
 
+expresscat ::  [CCG.Node] -> CCG.Cat
+expresscat node =
+   let one = head node
+    in CP.cat one
+    
+    
+    
       
