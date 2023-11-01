@@ -18,9 +18,14 @@ function toggle(id){
 
 //チャート格子作る
 
-function express_chart(a,b){
+var scores = '';
+
+function express_chart(a,b,c,d,e){
    sen_count = a;
    sentence = b;
+   sbeam = c;
+   cats = d;
+   scores = e;
    koushi(a,b);
 };
 
@@ -39,19 +44,17 @@ var sent = '';
 var senStart = 0;
 var senEnd = 0;
 var nodesList = [];
-var sbeam = 0;
+//var sbeam = 0;
 
 
 
-function koushi(count,sen,beam) {
-                 sent = sen;
-                 sbeam = beam;
+function koushi(count,sen) {
                  //文字列
                  var st = count;
                  //たて
-                 var height = st*150;
+                 var height = st*250;
                  //横へってくマス
-                 var width = st*150;
+                 var width = st*250;
                  //文の先頭指定
                  var a = count - 1;
                  //文の先頭位置を戻す役割
@@ -62,32 +65,34 @@ function koushi(count,sen,beam) {
                  //格子作る
                  //nodesList.push(nodes);
                  //context.fillStyle = "#ffffff";
-                 for(h = height; h > 0; h-=150){
-    	                for (w = width; w > 0; w-=150) {
+                 for(h = height; h > 0; h-=250){
+    	                for (w = width; w > 0; w-=250) {
     	                      var shape = new createjs.Shape();
     	                      //格子の正方形作る
     	                      shape.graphics.beginStroke("darkorange");
+                              shape.graphics.beginFill("white");
     	                      shape.graphics.beginFill("white");
     	                      shape.graphics.setStrokeStyle(3);
-                              shape.graphics.drawRect(0,0,150,150);
+                              shape.graphics.drawRect(0,0,250,250);
                               shape.x = w;
                               shape.y = h;
                               stage.addChild(shape);
                               shapeList[i] = shape;
-                              //nodeList[i] = node;
                               //テキスト
-                              var sen_t = new createjs.Text("", "18px 'ＭＳ ゴシック'", "black");
+                              var sen_t = new createjs.Text("", "20px ＭＳ ゴシック", "black");
                               var s = separate_sen(sen,a,t);
                               sen_t.text = s;
                               sen_t.x = w + 15;
                               sen_t.y = h + 30;
+                              expressCat(i);
+                              //expressScore(i);
                               stage.addChild(sen_t); 
                               shape.addEventListener("click",handleClick);
                               senList.push({sentence:s,start:a,end:t});
                               a--;
                               i++;
                              }
-                      width -= 150;
+                      width -= 250;
                       t--;
                       flag--;
                       a = flag;
@@ -96,6 +101,30 @@ function koushi(count,sen,beam) {
 };
 
 
+
+function expressCat(i){
+      var cat = separate_space(cats);
+      if (cat[i] == "Node_is_empty!") {
+                var sen_cat = new createjs.Text("", "italic 18px Arial", "gray");
+      } else {
+               var sen_cat = new createjs.Text("", "italic 15px Arial", "black");
+      }
+      sen_cat.text = cat[i];
+      sen_cat.x = w + 10;
+      sen_cat.y = h + 80;
+      stage.addChild(sen_cat);
+};
+
+function expressScore(i){
+       var sen_score = new createjs.Text("", "italic 15px Arial", "gray");
+       var score = separate_space(scores);
+       sen_score.text = "score : " + score[i];
+       sen_score.x = w + 15;
+       sen_score.y = h + 100;
+       stage.addChild(sen_score);
+       console.log(sen_score);
+};
+
 //文字数分ける
 function separate_sen(sen,h,t){
       var result = sen.substring(h,t)
@@ -103,22 +132,24 @@ function separate_sen(sen,h,t){
 };
 
 
+//文字列から(' ')を取り、文字列リストにする
+function separate_space(str){
+    var ary = cats.split(' ')
+    return ary
+};
 
 function handleClick(event){
     var shape = event.currentTarget;
-    //var inputsen = sent;
-    //var sebeam = sbeam;
     for(var i = 0; i < shapeList.length ; i++){
               if(shapeList[i] == shape){
-                  //SeparateSens {
-                   //sent = BT.fromText senList[i].sentence;                 
                    senStart = senList[i].start;
                    senEnd = senList[i].end;
-                  // }
-                   console.log(senStart, senEnd, "http://localhost:3000/chart/" + sent + "/" + sbeam + "/" + senStart + "/" + senEnd);
-                   let option = 'width=1000,height=600,left=300,top=300';
-                   window.open("http://localhost:3000/chart/私は学生だ。/32/" + senStart + "/" + senEnd, "mywindow",option);
-                   //window.open("http://localhost:3000/chart/" + inputsen + "/" + sebeam + "/" + senStart + "/" + senEnd, "mywindow",option);
+                   console.log(senStart, senEnd, "http://localhost:3000/chart/" + sentence + "/" + sbeam + "/" + senStart + "/" + senEnd);
+                   console.log(separate_space(cats));
+                   console.log(separate_space(scores));
+                   //console.log(senList);
+                   let option = 'width=1100,height=600,left=300,top=300';
+                   window.open("http://localhost:3000/chart/" + sentence + "/" + sbeam + "/" + senStart + "/" + senEnd, "mywindow",option);
                  }
      }
 };
@@ -138,7 +169,7 @@ function handleTick(event){
                                    .beginFill("orange")
                                    .beginStroke("darkorange")
     	                           .setStrokeStyle(3)
-                                   .drawRect(0,0,150,150);
+                                   .drawRect(0,0,250,250);
                            
                }else{        
                             shapeList[i].graphics
@@ -146,7 +177,7 @@ function handleTick(event){
                                     .beginFill("white")
                                     .beginStroke("darkorange")
     	                            .setStrokeStyle(3)
-                                    .drawRect(0,0,150,150);
+                                    .drawRect(0,0,250,250);
                }
      }
     stage.update();
