@@ -6,8 +6,6 @@ module Sentence_process (
    Test(..),
    InputSentences(..),
  --type
-   ChartMap,
-   emptychart,
    jsemData,
    emptyTest,
  -- function
@@ -16,10 +14,13 @@ module Sentence_process (
    eithertostring,
    sentence_filter_count,
    sentence_filter,
-   make_chartlist,
-   make_onechartlist,
-   chart2nodes,
-   expresscat
+   chart2nodelist,
+   maybe_nodes2nodes,
+   expressCat,
+   expressScore,
+   stlist2string,
+   scorelist2string,
+   add_space
 ) where
 
 import  qualified Data.Text as StrictT
@@ -53,11 +54,6 @@ data InputSentences = InputSentences {
 type Sentence = T.Text
 
 type SentenceMap = Map.Map Int Sentence
-
--- チャートMap
-type ChartMap = Map.Map Int [CCG.Node]
-emptychart :: ChartMap
-emptychart = Map.fromList $ []
 
 
 jsemData :: [C.JSeMData]
@@ -99,7 +95,7 @@ sentence_filter_count sentence = case (StrictT.null sentence) of
                     in StrictT.length sen_filter
 
 
--- (') を文の先頭と末尾につける
+-- "。"をとって、(') を文の先頭と末尾につける
 sentence_filter :: StrictT.Text -> String
 sentence_filter sentence = case (StrictT.null sentence) of
      True -> " "
@@ -109,58 +105,72 @@ sentence_filter sentence = case (StrictT.null sentence) of
                     in StrictT.unpack plus_sen2
 
 
--- let maybe_nodes = Map.lookup (senS,senE) chart
--- type Chart = M.Map (Int,Int) [CCG.Node]
-make_chartlist :: Int -> Int -> Int -> CP.Chart -> ChartMap -> ChartMap
-make_chartlist bd num count lightbluechart chartmap = 
-     let conum = count
-     in
-      case bd of
-         conum -> case conum of 
-                                    count  ->  chartmap
-                                    otherwise   -> 
-                                         let conum = count 
-                                         in let chartlist =lookupChart (bd+1) conum lightbluechart
-                                          in
-                                           if num == 1  then let chartmap = insert_chartlist num chartlist chartmap  
-                                                                         in make_chartlist bd num count lightbluechart chartmap
-                                                               else let chartmap = insert_chartlist (num+1) chartlist chartmap  
-                                                                    in make_chartlist bd num count lightbluechart chartmap
-         otherwise ->  case conum of 
-                              count -> let chartlist =lookupChart bd conum lightbluechart 
-                                                in insert_chartlist num chartlist chartmap
-                              otherwise -> let chartlist = lookupChart bd conum lightbluechart 
-                                            in
-                                            if num == 1 then let chartmap = insert_chartlist num chartlist chartmap  in make_chartlist bd num count lightbluechart chartmap
-                                                                 else let chartmap = insert_chartlist (num+1) chartlist chartmap  in make_chartlist bd num count lightbluechart chartmap
-
-make_onechartlist :: Int -> Int -> CP.Chart -> ChartMap -> ChartMap
-make_onechartlist start end lbnode chartmap =
-   let node = lookupChart start end lbnode
-     in insert_chartlist 1 node chartmap
-
- 
-lookupChart :: Int -> Int -> CP.Chart -> [CCG.Node]
-lookupChart bnum num lightbluechart = 
-   let chart = Map.lookup (bnum, num) lightbluechart
-     in chart2nodes chart
-
-insert_chartlist :: Int -> [CCG.Node] -> ChartMap -> ChartMap
-insert_chartlist num chartlist chartmap = case chartmap of 
-   empty -> Map.insert num chartlist chartmap
-   otherwise -> Map.insert (num + 1) chartlist chartmap
+     
+chart2nodelist :: Int -> Int -> CP.Chart -> [[CCG.Node]] -> [[CCG.Node]]
+chart2nodelist end start cp_chart nodelist = case end of
+    0 -> nodelist
+    otherwise -> case start of 
+                            0 -> let maybe_node = Map.lookup (start, end) cp_chart
+                                      in let node = maybe_nodes2nodes maybe_node
+                                      in let  nodes = nodelist ++ [node]
+                                      in let end_re = end - 1
+                                      in let start_re = end_re - 1
+                                      in chart2nodelist end_re start_re cp_chart nodes
+                            otherwise -> let maybe_node = Map.lookup (start, end) cp_chart
+                                                  in let node = maybe_nodes2nodes maybe_node
+                                                  in let  nodes = nodelist ++ [node]
+                                                  in let start_re = start -1
+                                                  in chart2nodelist end start_re cp_chart nodes
 
 
-chart2nodes :: Maybe [CCG.Node] -> [CCG.Node]
-chart2nodes nodes = case nodes of
+
+maybe_nodes2nodes :: Maybe [CCG.Node] -> [CCG.Node]
+maybe_nodes2nodes nodes = case nodes of
        Nothing -> []
        Just nodes -> nodes
 
-expresscat ::  [CCG.Node] -> CCG.Cat
-expresscat node =
-   let one = head node
-    in CP.cat one
+
+expressCat ::  [CCG.Node] -> String
+expressCat ccgnodes = case ccgnodes of
+   [] -> "Node_is_empty!"
+   nodes -> let one = head nodes
+                    in show $ CCG.cat one
+
+
+expressScore ::  [CCG.Node] -> StrictT.Text
+expressScore ccgnodes = case ccgnodes of
+    [] -> "No_socre!"
+    nodes -> let one = head nodes
+                     in T.toStrict $ CCG.showScore one
     
-    
-    
-      
+
+-- [Cat] -> "1_cat 2_cat ... n_cat" にする
+stlist2string :: [String] -> String
+stlist2string  stringlist = case stringlist of
+              [] -> "Node_is_empty!"
+              stlist -> let st_textlist = map StrictT.pack stlist
+                         in let spacelist = add_space st_textlist
+                         in let concatcat = StrictT.concat spacelist
+                         in let plus_sen1 = StrictT.cons '"' concatcat 
+                         in let plus_sen2 =StrictT.snoc plus_sen1 '"'
+                         in StrictT.unpack plus_sen2
+
+
+-- [score] -> "1_score  2_score ... n_score" にする
+scorelist2string :: [StrictT.Text] -> String
+scorelist2string  stringlist = case stringlist of
+              [] -> "No_score!"
+              stlist -> let spacelist = add_space stlist
+                         in let concatcat = StrictT.concat spacelist
+                         in let plus_sen1 = StrictT.cons '"' concatcat 
+                         in let plus_sen2 =StrictT.snoc plus_sen1 '"'
+                         in StrictT.unpack plus_sen2
+
+-- Textの後ろに(' ')スペースを入れたリスト
+add_space :: [StrictT.Text] -> [StrictT.Text]
+add_space textlist = case textlist of
+   [] -> []
+   x : xs -> StrictT.snoc x ' ' : add_space xs             
+
+
+
