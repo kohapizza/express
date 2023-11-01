@@ -67,7 +67,7 @@ library:
 # Runnable executable for our application
 executables:
   express:
-    main: app4.hs
+    main: mainapp.hs
     source-dirs: app
     ghc-options: ["-threaded", "-rtsopts", "-with-rtsopts=-N"]
     dependencies: express
