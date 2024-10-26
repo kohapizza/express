@@ -16,17 +16,6 @@ packages:
     commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
     git: http://github.com/DaisukeBekki/JSeM.git
 - completed:
-    commit: 420532a54bae200890116a336911eb0c114c8930
-    git: https://github.com/DaisukeBekki/lightblue.git
-    name: lightblue
-    pantry-tree:
-      sha256: 6e0380cbc311f6a44a5f5015a3cc3170a72972580acf94e92be1d5fe9c5d15de
-      size: 4971
-    version: 0.2.0.4
-  original:
-    commit: 420532a54bae200890116a336911eb0c114c8930
-    git: https://github.com/DaisukeBekki/lightblue.git
-- completed:
     hackage: classy-prelude-yesod-1.5.0@sha256:8f7e183bdfd6d2ea9674284c4f285294ab086aff60d9be4e5d7d2f3c1a2b05b7,1330
     pantry-tree:
       sha256: ae84d4cc0e1daf985db6cdcf2ac92319531b8e60f547183cc46480d00aafbe20
