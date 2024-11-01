@@ -64,7 +64,7 @@ instance Widgetizable Node where
          <table>
           <tr valign="bottom">
             <td valign="baseline">
-              <div id=#{StrictT.concat [id, "layerA"]} style="display: block" class="open">
+              <div id=#{StrictT.concat [id, "layerA"]} style="display: none" class="close">
                 <table border="1" rules="rows" frame="void" cellpadding="2">
                   <tr valign="bottom">
                     $forall dtr <- dtrs
@@ -78,7 +78,7 @@ instance Widgetizable Node where
                         <tr class="semhide">
                           <td align="center">
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
-              <div id=#{StrictT.concat [id, "layerB"]} style="display: none" class="close">
+              <div id=#{StrictT.concat [id, "layerB"]} style="display: block" class="open">
                 <table border="2" rules="rows" cellpadding="5" border="3px solid #808080">
                   <tr>
                     <td bgcolor="#ffd700">^{widgetize $ pf node}
@@ -95,7 +95,7 @@ instance Widgetizable Node where
               <table border="1" rules="rows" frame="void" cellpadding="5">
                 <tr>
                   <td>
-                   <button type="button" class="btn-design" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>-
+                   <button type="button" class="btn-design" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>+
                   <span>^{widgetize $ rs node}
         |]
 
