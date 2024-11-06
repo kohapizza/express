@@ -5,16 +5,27 @@
 
 packages:
 - completed:
-    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
-    git: http://github.com/DaisukeBekki/JSeM.git
+    commit: c2cd39168e267007b4690dbf625329bac57a8185
+    git: http://github.com/DaisukeBekki/JSeM
     name: jsem
     pantry-tree:
-      sha256: e6ae8d999fd1f0d0e715e779f9cb660bb5d11b5a554d7e9e940f6dee7efa699d
-      size: 5360
-    version: 0.1.4
+      sha256: c077c4221363f40ad472210b825128262eadba1f72d48c0f3ff304c463e24520
+      size: 6040
+    version: '1.1'
   original:
-    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
-    git: http://github.com/DaisukeBekki/JSeM.git
+    commit: c2cd39168e267007b4690dbf625329bac57a8185
+    git: http://github.com/DaisukeBekki/JSeM
+- completed:
+    commit: e4bd3783f4e872b8df29538d9219e41f40378363
+    git: http://github.com/DaisukeBekki/nlp-tools
+    name: nlp-tools
+    pantry-tree:
+      sha256: c06faa981b034f9cf3e97742d8ea9a2256c797beb65766aec3198e970144e04f
+      size: 1864
+    version: 0.2.0
+  original:
+    commit: e4bd3783f4e872b8df29538d9219e41f40378363
+    git: http://github.com/DaisukeBekki/nlp-tools
 - completed:
     hackage: classy-prelude-yesod-1.5.0@sha256:8f7e183bdfd6d2ea9674284c4f285294ab086aff60d9be4e5d7d2f3c1a2b05b7,1330
     pantry-tree:

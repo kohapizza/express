@@ -4,10 +4,17 @@ packages:
 - .
 extra-deps:
   # - ../jsem
-#  - git: https://github.com/DaisukeBekki/JSeM.git
-#    commit: f7f1bb847c4eb5e37ec54906e61a96a0b427692c
-  - git: http://github.com/DaisukeBekki/JSeM.git
-    commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
+  #  - git: https://github.com/DaisukeBekki/JSeM.git
+  #    commit: f7f1bb847c4eb5e37ec54906e61a96a0b427692c
+  # - git: http://github.com/DaisukeBekki/JSeM.git
+  #   commit: d5705b42006a08aa9dd8d2ea37d29fc7cf5559f6
+
+  - git: http://github.com/DaisukeBekki/JSeM
+    commit: c2cd39168e267007b4690dbf625329bac57a8185
+
+  # nlp-tools
+  - git: http://github.com/DaisukeBekki/nlp-tools
+    commit: e4bd3783f4e872b8df29538d9219e41f40378363
 
   # - git: https://github.com/DaisukeBekki/lightblue.git 
   #   commit: 420532a54bae200890116a336911eb0c114c8930
