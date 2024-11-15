@@ -32,11 +32,8 @@ data App = App
   
 mkYesod "App" [parseRoutes|
 / HomeR GET
-/jsem/#String JsemR GET
+-- /jsem/#String JsemR GET
 /input InputR GET
---/chart ChartR GET
---/link LinkR GET
---/chart/sentence/#T.Text/beam/#Int/senstart/#Int/senend/#Int ChartR GET
 /chart/#String/#Int/#Int/#Int ChartR GET
 /error ErrorR GET
 /not-found NotFoundR GET
@@ -86,44 +83,42 @@ getHomeR = do
    myFunction
 
 
+-- getJsemR :: String -> Handler Html
+-- getJsemR var = do
+--    -- contentsはTest型
+--   let contents = SP.jsemSearch SP.jsemData var
+--   -- preは[T.Text]型・hyはT.Text型
+--   let ans = show $ SP.answer_w contents
+--       pre = map T.fromStrict (SP.premises_w contents)
+--       hy = T.fromStrict $ SP.hypothesis_w contents
+--   if( pre == [] || hy == "" ) 
+--    then defaultLayout $ do [whamlet|<p><font color=red> Notfound.|]
+--    else do
+--      let psIOnode = map (L.parseSentence' 16 2) pre
+--      let ps = head <$> map unsafePerformIO psIOnode
+--      let m = unsafePerformIO $ L.parseSentence' 16 2 hy
+--      defaultLayout $ do
+--          [whamlet|
+--           <head>
+--                <title> #{var}
+--           <header class="ccg_header">
+--               <b>[#{var}]</b>
+--                    <br>&ensp;answer : #{ans}
+--                    $forall pr <- pre
+--                         &ensp;premise : <span class="pre-under">#{pr}</span>
+--                    <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
+--           <body>
+--                <main id="main">     
+--                  <input type="checkbox" id="cat-toggle"/>
+--                  <input type="checkbox" id="sem-toggle"/>
+--                  <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
+--                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
+--                       ^{mapM_ WE.widgetize $ ps}
+--                       ^{mapM_ WE.widgetize $ take 1 m}
 
-getJsemR :: String -> Handler Html
-getJsemR var = do
-   -- contentsはTest型
-  let contents = SP.jsemSearch SP.jsemData var
--- preは[T.Text]型・hyはT.Text型
-  let ans = show $ SP.answer_w contents
-      pre = map T.fromStrict (SP.premises_w contents)
-      hy = T.fromStrict $ SP.hypothesis_w contents
-  if( pre == [] || hy == "" ) 
-   then defaultLayout $ do [whamlet|<p><font color=red> Notfound.|]
-   else do
-     let psIOnode = map (L.parseSentence' 16 2) pre
-     let ps = head <$> map unsafePerformIO psIOnode
-     let m = unsafePerformIO $ L.parseSentence' 16 2 hy
-     defaultLayout $ do
-         [whamlet|
-          <head>
-               <title> #{var}
-          <header class="ccg_header">
-              <b>[#{var}]</b>
-                   <br>&ensp;answer : #{ans}
-                   $forall pr <- pre
-                        &ensp;premise : <span class="pre-under">#{pr}</span>
-                   <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
-          <body>
-               <main id="main">     
-                 <input type="checkbox" id="cat-toggle"/>
-                 <input type="checkbox" id="sem-toggle"/>
-                 <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
-                 <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
-                      ^{mapM_ WE.widgetize $ ps}
-                      ^{mapM_ WE.widgetize $ take 1 m}
-
-         |]
-         myDesign
-         myFunction
-
+--          |]
+--          myDesign
+--          myFunction
 
      
 getInputR :: Handler Html
@@ -133,11 +128,12 @@ getInputR = do
                          <*> ireq intField "sen_b"
    let string_sen = SP.sentence_filter $ SP.input_Sentence sentence
    let text_sen = T.fromStrict $ SP.input_Sentence sentence
---"。"を取り除いた文字数
+   --"。"を取り除いた文字数
    let count = SP.sentence_filter_count $ SP.input_Sentence sentence
    let beam = SP.sen_beam sentence
    let chart = unsafePerformIO $ L.parse beam text_sen
    let nodelist = SP.chart2nodelist count (count-1) chart [] 
+   let dtr_nodes = map SP.expressDtrs nodelist
    let cat_nodes = map SP.expressCat nodelist
    let score_nodes = map SP.expressScore nodelist
    let addspace_cats = SP.stlist2string cat_nodes
@@ -162,26 +158,26 @@ getInputR = do
                      $forall cat <- cat_nodes
                        <li> #{cat}
                  <p> #{cat_length} 終わり
+                 <ul>
+                     $forall dtr <- dtr_nodes
+                       <li> #{dtr}
+                 <p> 終わり
         |]
         myDesign
         myFunction
  
 
 
-
-
-
 getChartR :: String -> Int -> Int -> Int -> Handler Html
 getChartR sentences beams senS senE = do
     -- T.pack : String -> Text
      let lazytext_sen = T.pack $ sentences
-     --let int_beam = StrictT.length $ StrictT.pack $ stringbeams
-    -- chart :: [CCG.Node]
-     --let chart = unsafePerformIO $ L.parse int_beam lazytext_sen
+     -- chart :: CP.Chart
      let chart = unsafePerformIO $ L.parse beams lazytext_sen
      -- maybe_nodes : Maybe [CCG.Node]
+     -- (senS, senE)に対応する[CCG.Node]を取り出す
      let maybe_nodes = Map.lookup (senS,senE) chart
-    -- nodes : [CCG.Node]
+    -- maybe_nodes2nodes :: Maybe [CCG.Node] -> [CCG.Node]
      let nodes = SP.maybe_nodes2nodes maybe_nodes    
      defaultLayout $ do
         addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
@@ -197,8 +193,8 @@ getChartR sentences beams senS senE = do
         |]
         myDesign
         myFunction 
+      -- nodeをwidget化
         
-
     
 --CSS（cassius）
 myDesign :: Widget
@@ -218,5 +214,4 @@ getNotFoundR = notFound
 
 main :: IO ()
 main = warp 3000 App
- 
  

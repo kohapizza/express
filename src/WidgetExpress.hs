@@ -12,37 +12,46 @@ module WidgetExpress (
   ) where
 
 import  Yesod
---import  Import
 import  qualified Data.Maybe as Maybe --base
 import  Interface.Text (SimpleText(..))
 import  Interface.TeX (Typeset(..))
 import  qualified Data.Text.Lazy as T
 import  qualified Data.Text as StrictT
 import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
-import  qualified DTS.UDTT as UDTT
+-- import  qualified DTS.UDTT as UDTT
+import qualified DTS.UDTTdeBruijn as UDTT
+import qualified DTS.Index as Index
+import  qualified DTS.Index as UDID
 import  qualified DTS.UDTTwithName as UDWN
 import  Control.Monad (forM_)           --base
 import  Control.Applicative
 import  qualified Text.Julius as J
 
 
-
-
+-- Widgetizableクラスを定義、widgetizeという関数を持つ
 class Widgetizable a where
   widgetize :: forall b. a -> WidgetT b IO ()
+  -- type Widget = WidgetT MyApp IO ()
+  -- 任意の型のbにWidget（WidgetT 型）としてページに描画できるように変換する
+  -- widgetize :: forall b. a -> Widgetと同じ
   
+-- WidgetizableクラスのインスタンスにT.Text型を定義
 instance Widgetizable T.Text where
   widgetize = toWidget 
 
+-- WidgetizableクラスのインスタンスにNode型を定義
 instance Widgetizable Node where
+  -- 子ノードなかったら
   widgetize node = case daughters node of
     [] -> do
+      -- newIdent 関数で一意のidを得る
       id <- newIdent
       [whamlet|
         <table>
           <tr valign="bottom">
             <td valign="baseline">
               <table border="1" rules="rows" frame="void" cellpadding="2">
+                <!-- Nodeの音韻表示 -->
                 <tr>
                   <td align="center" bgcolor="#ffd700">#{pf node}
                 <tr>
@@ -58,6 +67,7 @@ instance Widgetizable Node where
               <span>LEX
         |]
     dtrs -> do
+      -- 子の数*２
       let len = (length dtrs)*2
       id <- newIdent
       [whamlet|
@@ -100,9 +110,10 @@ instance Widgetizable Node where
         |]
 
 
-
+-- toText :: a -> Text
 instance Widgetizable RuleSymbol where
   widgetize rs = [whamlet|#{toText rs}|]
+
 
 instance Widgetizable Cat where
   widgetize category = case category of
@@ -193,9 +204,17 @@ pmf2MathML label pmf = case (label,pmf) of
                  return $ T.concat [x, ":[", T.pack $ show i, "]"]
   _ -> return $ T.pack "Error: pmf2MathML"
 
+-- semのinstance化
+-- Index.initializeIndex :: Indexed a -> a
+-- UDWN.fromDeBruijnLoop :: [VarName] -- ^ A context (= a list of variable names)
+--                    -> UDTT.Preterm  -- ^ A preterm in de Bruijn notation
+--                    -> Indexed UDWN.Preterm -- ^ A preterm with variable names
+-- UDWN.fromDeBruijnLoop [] :: UDTT.Preterm -> Indexed UDWN.Preterm
+-- Index.initializeIndex . (UDWN.fromDeBruijnLoop []) :: UDWN.Preterm
 instance Widgetizable UDTT.Preterm where
-  widgetize = widgetize . UDTT.initializeIndex . (UDTT.fromDeBruijn [])
+  widgetize = widgetize . Index.initializeIndex . (UDWN.fromDeBruijnLoop [])
 
+-- 変えなくていいはず。
 instance Widgetizable UDWN.VarName where
   widgetize (UDWN.VarName v i) =
     [whamlet|
@@ -204,6 +223,7 @@ instance Widgetizable UDWN.VarName where
         <mn>#{T.pack (show i)}
         |]
 
+-- 後で要対応
 instance Widgetizable UDWN.Preterm where
   widgetize preterm = case preterm of
     UDWN.Var vname -> widgetize vname
@@ -307,6 +327,10 @@ instance Widgetizable UDWN.Preterm where
         ^{widgetize m}
         <mo>)
         |]
+    -- この３つどうしよう！！！！！
+    UDWN.Disj p p2 -> [whamlet|どうしよう。|]
+    UDWN.Iota s p -> [whamlet|<body>どうしよう。|]
+    UDWN.Unpack p l m n -> [whamlet|<body>どうしよう。|]
     UDWN.Lamvec vname m  -> [whamlet|
       <mrow>
         <mi>&lambda;
@@ -325,12 +349,15 @@ instance Widgetizable UDWN.Preterm where
           |]
     UDWN.Unit       -> [whamlet|<mi>()|]
     UDWN.Top        -> [whamlet|<mi>&top;|]
+    -- どうしよう！！！！！
+    UDWN.Entity     -> [whamlet|エンティティ|]
     UDWN.Bot        -> [whamlet|<mi>&bot;|]
-    UDWN.Asp j m    -> [whamlet|
+    -- どうしよう！！！！！
+    UDWN.Asp m    -> [whamlet|
       <mrow>
         <msub>
           <mo>@
-          <mn>#{T.pack (show j)}
+          <mn>#{T.pack "ここが亡くなった"}
         <mo>:
         ^{widgetize m}
       |]

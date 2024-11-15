@@ -20,13 +20,13 @@ function toggle(id){
 
 var scores = '';
 
-function express_chart(count,string_sen,beam,html_cats,addspace_scores){
-   sen_count = count;
-   sentence = string_sen;
-   sbeam = beam;
-   cats = html_cats;
-   scores = addspace_scores;
-   koushi(count,string_sen);
+function express_chart(a,b,c,d,e){
+   sen_count = a;
+   sentence = b;
+   sbeam = c;
+   cats = d;
+   scores = e;
+   koushi(a,b);
 };
 
 var stage = new createjs.Stage("canvas");
@@ -44,15 +44,16 @@ var sent = '';
 var senStart = 0;
 var senEnd = 0;
 var nodesList = [];
+//var sbeam = 0;
 
 
 
 function koushi(count,sen) {
-                 //。を除いた文字数
+                 //文字列
                  var st = count;
-                 //縦の長さ
+                 //たて
                  var height = st*250;
-                 //横の長さ
+                 //横へってくマス
                  var width = st*250;
                  //文の先頭指定
                  var a = count - 1;
@@ -62,61 +63,47 @@ function koushi(count,sen) {
                  var t = count;
                  var i = 0;
                  //格子作る
+                 //nodesList.push(nodes);
+                 //context.fillStyle = "#ffffff";
                  for(h = height; h > 0; h-=250){
     	                for (w = width; w > 0; w-=250) {
-                              //格子の正方形作る
-                        　　　 var shape = new createjs.Shape();
-                              //外枠の色
-    	                   　   shape.graphics.beginStroke("darkorange");
-                              //中の色
-    	                   　   shape.graphics.beginFill("white");
-    	                    　  shape.graphics.setStrokeStyle(3);
-                          　　 //正方形のサイズを250*250にする
+    	                      var shape = new createjs.Shape();
+    	                      //格子の正方形作る
+    	                      shape.graphics.beginStroke("darkorange");
+                              shape.graphics.beginFill("white");
+    	                      shape.graphics.beginFill("white");
+    	                      shape.graphics.setStrokeStyle(3);
                               shape.graphics.drawRect(0,0,250,250);
                               shape.x = w;
                               shape.y = h;
-                              //stageにshapeを追加
                               stage.addChild(shape);
                               shapeList[i] = shape;
                               //テキスト
                               var sen_t = new createjs.Text("", "20px ＭＳ ゴシック", "black");
-                              //senを分ける
-                              //sen="私は人", a=2, t=3のとき、s=人
                               var s = separate_sen(sen,a,t);
                               sen_t.text = s;
                               sen_t.x = w + 15;
                               sen_t.y = h + 30;
-                              //syntactic categoryを表示
                               expressCat(i);
-                              //scoreを表示
                               //expressScore(i);
-                              //stageにsen_tを追加
                               stage.addChild(sen_t); 
-                              //格子がクリックされるたびにhandleClickが呼び出される
                               shape.addEventListener("click",handleClick);
-                              //senListに{sentence:人, start:2, end:3}を追加
                               senList.push({sentence:s,start:a,end:t});
                               a--;
                               i++;
                              }
-                      -- wじゃなくてwidthを減らしていることに注意！
                       width -= 250;
-                      -- 人をもう含めないように、最後の文字を変える
                       t--;
-                      -- 先頭位置をひとつ前に持ってくる
                       flag--;
                       a = flag;
-                  }
-                  //描画内容をキャンバスに反映する
-                  stage.update();
+                }
+                stage.update();
 };
 
 
 
 function expressCat(i){
-      //html_catsをスペースごとで分けてそれぞれを格納したリスト
       var cat = separate_space(cats);
-
       if (cat[i] == "Node_is_empty!") {
                 var sen_cat = new createjs.Text("", "italic 18px Arial", "gray");
       } else {
@@ -138,12 +125,7 @@ function expressScore(i){
        console.log(sen_score);
 };
 
-//文を分ける
-//sen : 対象となる文字列
-//h : 切り出しの開始位置
-//t : 切り出しの終了位置（t のインデックスの前まで）
-//var result = separate_sen("こんにちは、世界！", 0, 5);
-//console.log(result); // 出力: "こんにちは"
+//文字数分ける
 function separate_sen(sen,h,t){
       var result = sen.substring(h,t)
       return result
@@ -156,25 +138,18 @@ function separate_space(str){
     return ary
 };
 
-//格子がクリックされたとき
 function handleClick(event){
-    //クリックされたものをshapeとする
     var shape = event.currentTarget;
-    for(var i = 0; i < shapeList.length; i++){
-      　　　　　//クリックされtshapeを特定
+    for(var i = 0; i < shapeList.length ; i++){
               if(shapeList[i] == shape){
-                   //senList：[{sentence:人, start:2, end:3}, {sentence:は人, start:1, end:2}, ...]
                    senStart = senList[i].start;
                    senEnd = senList[i].end;
                    console.log(senStart, senEnd, "http://localhost:3000/chart/" + sentence + "/" + sbeam + "/" + senStart + "/" + senEnd);
                    console.log(separate_space(cats));
                    console.log(separate_space(scores));
                    //console.log(senList);
-                   //新しいwindow
                    let option = 'width=1100,height=600,left=300,top=300';
                    window.open("http://localhost:3000/chart/" + sentence + "/" + sbeam + "/" + senStart + "/" + senEnd, "mywindow",option);
-                   //ここでgetChartR funtionが実行される
-
                  }
      }
 };
@@ -207,5 +182,3 @@ function handleTick(event){
      }
     stage.update();
 };
-
-

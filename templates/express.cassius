@@ -12,6 +12,8 @@
             background: #ffefd5;
             border-bottom: dotted 3px #ffa500; 
           body
+            width: 100vw;
+            height: 100vh;
             font-size: 1em;
             margin: 0;
           .home_body
@@ -21,7 +23,7 @@
              width: 2em;
              max-width: 100%;
           #main
-            padding: 110px 0px 0px 20px;
+            padding: 110px 0px 0px 0px;
           p.hyoujimenu
             text-align: center;
             padding: 10px 0px;
