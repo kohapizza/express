@@ -139,7 +139,7 @@ getInputR = do
    let addspace_cats = SP.stlist2string cat_nodes
    let addspace_scores = SP.scorelist2string score_nodes
    let html_cats = map toHtml addspace_cats
---   let html_score = map toHtml addspace_scores
+   --   let html_score = map toHtml addspace_scores
    let cat_length = length cat_nodes
    if cat_nodes == [] then  defaultLayout $ do [whamlet| <h2>ないよ|]
    else
