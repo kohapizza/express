@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Lightblue (
-  -- parseSentence,
-  -- parseSentence',
+  parseSentence,
+  parseSentence',
   parse
   ) where
 
@@ -15,16 +15,24 @@ import qualified Parser.Language.Japanese.Lexicon as L (lexicalResourceBuilder)
 import qualified Parser.Language.Japanese.Juman.CallJuman as Juman
 import qualified Parser.Language as PL (jpOptions)
 
--- parseSentence :: Int -> Int -> T.Text -> IO(T.Text)
--- parseSentence beam nbest sentence = do
---   nodes <- CP.simpleParse beam sentence
---   let nbestnodes = take nbest nodes;
---   return $ T.concat $ [HTML.startMathML] ++ (map HTML.toMathML nbestnodes) ++ [HTML.endMathML]
+-- ビーム数と文を用いてパーズし、上位nbest個のノードを抽出してMathMLタグで囲んだT.Textを返す
+parseSentence :: Int -> Int -> T.Text -> IO(T.Text)
+parseSentence beam nbest sentence = do
+  -- useOnlybeamParseSetting :: CP.ParseSetting
+  useOnlybeamParseSetting <- defaultParseSetting' beam 
+  nodes <- CP.simpleParse useOnlybeamParseSetting sentence -- パーズしてnodeを得る, nodes :: [CCG.Node]
+  let nbestnodes = take nbest nodes
+  -- startMathML = "<math xmlns='http://www.w3.org/1998/Math/MathML'>"
+  -- endMathML = "</math>"
+  -- toMathML :: a -> T.Text
+  return $ T.concat $ [HTML.startMathML] ++ (map HTML.toMathML nbestnodes) ++ [HTML.endMathML]
 
--- parseSentence' :: Int -> Int -> T.Text -> IO([CCG.Node])
--- parseSentence' beam nbest sentence = do
---   nodes <- CP.simpleParse beam sentence
---   return $ take nbest nodes
+-- ビーム数と文を用いてパーズし、上位 nbest 個のノードを抽出してリストとして返す
+parseSentence' :: Int -> Int -> T.Text -> IO([CCG.Node])
+parseSentence' beam nbest sentence = do
+  useOnlybeamParseSetting <- defaultParseSetting' beam 
+  nodes <- CP.simpleParse useOnlybeamParseSetting sentence
+  return $ take nbest nodes
 
 -- parse :: Int           -- ^ The beam width
 --          -> T.Text     -- ^ A sentence to be parsed

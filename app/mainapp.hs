@@ -32,7 +32,7 @@ data App = App
   
 mkYesod "App" [parseRoutes|
 / HomeR GET
--- /jsem/#String JsemR GET
+/jsem/#String JsemR GET
 /input InputR GET
 /chart/#String/#Int/#Int/#Int ChartR GET
 /error ErrorR GET
@@ -82,43 +82,48 @@ getHomeR = do
    myDesign
    myFunction
 
+-- 引数はjsem_id
+getJsemR :: String -> Handler Html
+getJsemR var = do
+   -- contentsはTest型
+   -- jsemData :: [C.JSeMData]
+   -- jsemSearch :: [C.JSeMData] -> String -> Test
+  let contents = SP.jsemSearch SP.jsemData var
+  -- preは[T.Text]型・hyはT.Text型
+  let ans = show $ SP.answer_w contents
+      pre = map T.fromStrict (SP.premises_w contents) --前提
+      hy = T.fromStrict $ SP.hypothesis_w contents --仮説
+  if( pre == [] || hy == "" ) 
+   then defaultLayout $ do [whamlet|<p><font color=red> Notfound.|]
+   else do
+      -- psIOnode :: [IO([CCG.Node])]
+     let psIOnode = map (L.parseSentence' 16 2) pre
+     -- ps :: [CCG.Node] psIONodeの各要素からIOとって１個目の要素を得る
+     let ps = head <$> map unsafePerformIO psIOnode
+     -- m :: [CCG.Node] 
+     let m = unsafePerformIO $ L.parseSentence' 16 2 hy
+     defaultLayout $ do
+         [whamlet|
+          <head>
+               <title> #{var}
+          <header class="ccg_header">
+              <b>[#{var}]</b>
+                   <br>&ensp;answer : #{ans}
+                   $forall pr <- pre
+                        &ensp;premise : <span class="pre-under">#{pr}</span>
+                   <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
+          <body>
+               <main id="main">     
+                 <input type="checkbox" id="cat-toggle"/>
+                 <input type="checkbox" id="sem-toggle"/>
+                 <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
+                 <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
+                      ^{mapM_ WE.widgetize $ ps}
+                      ^{mapM_ WE.widgetize $ take 1 m}
 
--- getJsemR :: String -> Handler Html
--- getJsemR var = do
---    -- contentsはTest型
---   let contents = SP.jsemSearch SP.jsemData var
---   -- preは[T.Text]型・hyはT.Text型
---   let ans = show $ SP.answer_w contents
---       pre = map T.fromStrict (SP.premises_w contents)
---       hy = T.fromStrict $ SP.hypothesis_w contents
---   if( pre == [] || hy == "" ) 
---    then defaultLayout $ do [whamlet|<p><font color=red> Notfound.|]
---    else do
---      let psIOnode = map (L.parseSentence' 16 2) pre
---      let ps = head <$> map unsafePerformIO psIOnode
---      let m = unsafePerformIO $ L.parseSentence' 16 2 hy
---      defaultLayout $ do
---          [whamlet|
---           <head>
---                <title> #{var}
---           <header class="ccg_header">
---               <b>[#{var}]</b>
---                    <br>&ensp;answer : #{ans}
---                    $forall pr <- pre
---                         &ensp;premise : <span class="pre-under">#{pr}</span>
---                    <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
---           <body>
---                <main id="main">     
---                  <input type="checkbox" id="cat-toggle"/>
---                  <input type="checkbox" id="sem-toggle"/>
---                  <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
---                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
---                       ^{mapM_ WE.widgetize $ ps}
---                       ^{mapM_ WE.widgetize $ take 1 m}
-
---          |]
---          myDesign
---          myFunction
+         |]
+         myDesign
+         myFunction
 
      
 getInputR :: Handler Html
