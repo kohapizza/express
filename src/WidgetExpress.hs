@@ -18,11 +18,13 @@ import  Interface.TeX (Typeset(..))
 import  qualified Data.Text.Lazy as T
 import  qualified Data.Text as StrictT
 import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),FeatureValue(..))
--- import  qualified DTS.UDTT as UDTT
+import qualified DTS.DTTdeBruijn as DTT
+import qualified DTS.DTTwithName as DWN
 import qualified DTS.UDTTdeBruijn as UDTT
 import qualified DTS.Index as Index
 import  qualified DTS.Index as UDID
 import  qualified DTS.UDTTwithName as UDWN
+import qualified DTS.QueryTypes as QT
 import  Control.Monad (forM_)           --base
 import  Control.Applicative
 import  qualified Text.Julius as J
@@ -327,10 +329,35 @@ instance Widgetizable UDWN.Preterm where
         ^{widgetize m}
         <mo>)
         |]
-    -- この３つどうしよう！！！！！
-    UDWN.Disj p p2 -> [whamlet|どうしよう。|]
-    UDWN.Iota s p -> [whamlet|<body>どうしよう。|]
-    UDWN.Unpack p l m n -> [whamlet|<body>どうしよう。|]
+    UDWN.Disj a b -> [whamlet|
+      <mrow>
+        <mi>
+          ^{widgetize a}
+        <mo>+
+        <mi>
+          ^{widgetize b}
+        |]
+    UDWN.Iota s p -> [whamlet|
+        <mrow>
+        <msub>
+          <mi>&iota;
+          <mi>#{toText s}
+        <mo>(
+        ^{widgetize p}
+        <mo>)
+        |]
+    UDWN.Unpack p l m n -> [whamlet|
+      <mrow>
+        <msubsup>
+          <mi>unpack
+          <mn>^{widgetize l}
+          <mn>^{widgetize p}
+        <mo>(
+        ^{widgetize m}
+        <mo>,
+        ^{widgetize n}
+        <mo>)
+        |]   
     UDWN.Lamvec vname m  -> [whamlet|
       <mrow>
         <mi>&lambda;
@@ -349,16 +376,11 @@ instance Widgetizable UDWN.Preterm where
           |]
     UDWN.Unit       -> [whamlet|<mi>()|]
     UDWN.Top        -> [whamlet|<mi>&top;|]
-    -- どうしよう！！！！！
-    UDWN.Entity     -> [whamlet|エンティティ|]
+    UDWN.Entity     -> [whamlet|<mi>entity|]
     UDWN.Bot        -> [whamlet|<mi>&bot;|]
-    -- どうしよう！！！！！
     UDWN.Asp m    -> [whamlet|
       <mrow>
-        <msub>
-          <mo>@
-          <mn>#{T.pack "ここが亡くなった"}
-        <mo>:
+        <mo>@
         ^{widgetize m}
       |]
     UDWN.Nat    -> [whamlet|<mi>N|]
