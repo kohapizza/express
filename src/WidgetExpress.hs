@@ -207,14 +207,9 @@ pmf2MathML label pmf = case (label,pmf) of
   _ -> return $ T.pack "Error: pmf2MathML"
 
 -- semのinstance化
--- Index.initializeIndex :: Indexed a -> a
--- UDWN.fromDeBruijnLoop :: [VarName] -- ^ A context (= a list of variable names)
---                    -> UDTT.Preterm  -- ^ A preterm in de Bruijn notation
---                    -> Indexed UDWN.Preterm -- ^ A preterm with variable names
--- UDWN.fromDeBruijnLoop [] :: UDTT.Preterm -> Indexed UDWN.Preterm
--- Index.initializeIndex . (UDWN.fromDeBruijnLoop []) :: UDWN.Preterm
+-- fromDeBruijn :: [VarName] -> UDTTdB(=UDTT).Preterm -> UDWN.Preterm
 instance Widgetizable UDTT.Preterm where
-  widgetize = widgetize . Index.initializeIndex . (UDWN.fromDeBruijnLoop [])
+  widgetize = widgetize . (UDWN.fromDeBruijn [])
 
 -- 変えなくていいはず。
 instance Widgetizable UDWN.VarName where
@@ -225,7 +220,7 @@ instance Widgetizable UDWN.VarName where
         <mn>#{T.pack (show i)}
         |]
 
--- 後で要対応
+-- UDWN: DTS.UDTTwithName
 instance Widgetizable UDWN.Preterm where
   widgetize preterm = case preterm of
     UDWN.Var vname -> widgetize vname
@@ -418,6 +413,199 @@ instance Widgetizable UDWN.Preterm where
         <mo>)
         |]
     UDWN.Idpeel m n -> [whamlet|
+      <mrow>
+        <mi>idpeel
+        <mo>(
+        ^{widgetize m}
+        <mo>,
+        ^{widgetize n}
+        <mo>)
+        |]
+
+-- fromDeBruijn :: [VarName] -> DTTdB(=DTT).Preterm -> DWN.Preterm
+instance Widgetizable DTT.Preterm where
+  widgetize = widgetize . (DWN.fromDeBruijn [])
+
+instance Widgetizable DWN.VarName where
+  widgetize (DWN.VarName v i) =
+    [whamlet|
+      <msub>
+        <mi>#{T.singleton v}
+        <mn>#{T.pack (show i)}
+        |]
+
+-- 後で要対応 DWN: DTS.DTTwithName　とりあえず
+instance Widgetizable DWN.Preterm where
+  widgetize preterm = case preterm of
+    DWN.Var vname -> widgetize vname
+    DWN.Con cname -> [whamlet|<mtext>#{cname}|]
+    DWN.Type -> [whamlet|<mi>type|]
+    DWN.Kind -> [whamlet|<mi>kind|]
+    DWN.Pi vname a b -> [whamlet|
+      <mrow>
+        <mo>(
+        ^{widgetize vname}
+        <mo>:
+        ^{widgetize a}
+        <mo>)
+        <mo>&rarr;
+        ^{widgetize b}
+        |]
+    DWN.Not a -> [whamlet|
+      <mrow>
+        <mo>&not;
+        <mi>toMathML a
+        |]
+    DWN.Sigma vname a b -> case b of 
+      DWN.Top -> widgetize  a
+      _   -> [whamlet|
+        <mrow>
+          <mo>[
+          <mtable>
+            <mtr>
+              <mtd columnalign="left">
+                <mrow>
+                  ^{widgetize vname}
+                  <mo>:
+                  ^{widgetize a}
+            <mtr>
+              <mtd columnalign="left">
+                <mpadded height='-0.5em'>^{widgetize b}
+          <mo>]
+        |]
+    DWN.Lam vname m -> [whamlet|
+      <mrow>
+        <mi>&lambda;
+        ^{widgetize vname}
+        <mpadded lspace='-0.2em' width='-0.2em'>
+          <mo>.
+        ^{widgetize m}
+        |]
+    DWN.App (DWN.App (DWN.Con cname) y) x -> [whamlet|
+      <mrow>
+        <mtext>#{cname}
+        <mo>(
+        ^{widgetize x}
+        <mo>,
+        ^{widgetize y}
+        <mo>)
+        |]
+    DWN.App (DWN.App (DWN.App (DWN.Con cname) z) y) x -> [whamlet|
+      <mrow>
+        <mtext>#{cname}
+        <mo>(
+        ^{widgetize x}
+        <mo>,
+        ^{widgetize y}
+        <mo>,
+        ^{widgetize z}
+        <mo>)
+        |]
+    DWN.App (DWN.App (DWN.App (DWN.App (DWN.Con cname) u) z) y) x -> [whamlet|
+      <mrow>
+        <mtext>#{cname}
+        <mo>(
+        ^{widgetize x}
+        <mo>,
+        ^{widgetize y}
+        <mo>,
+        ^{widgetize z}
+        <mo>,
+        ^{widgetize u}
+        <mo>)
+        |]
+    DWN.App m n -> [whamlet|
+      <mrow>
+        ^{widgetize m}
+        <mo>(
+        ^{widgetize n}
+        <mo>)
+        |]
+    DWN.Pair m n  -> [whamlet|
+      <mrow>
+        <mo>(
+        ^{widgetize m}
+        <mo>,
+        ^{widgetize n}
+        <mo>)
+        |]
+    DWN.Proj s m  -> [whamlet|
+      <mrow>
+        <msub>
+          <mi>&pi;
+          <mi>#{toText s}
+        <mo>(
+        ^{widgetize m}
+        <mo>)
+        |]
+    DWN.Disj a b -> [whamlet|
+      <mrow>
+        <mi>
+          ^{widgetize a}
+        <mo>+
+        <mi>
+          ^{widgetize b}
+        |]
+    DWN.Iota s p -> [whamlet|
+        <mrow>
+        <msub>
+          <mi>&iota;
+          <mi>#{toText s}
+        <mo>(
+        ^{widgetize p}
+        <mo>)
+        |]
+    DWN.Unpack p l m n -> [whamlet|
+      <mrow>
+        <msubsup>
+          <mi>unpack
+          <mn>^{widgetize l}
+          <mn>^{widgetize p}
+        <mo>(
+        ^{widgetize m}
+        <mo>,
+        ^{widgetize n}
+        <mo>)
+        |] 
+    DWN.Unit       -> [whamlet|<mi>()|]
+    DWN.Top        -> [whamlet|<mi>&top;|]
+    DWN.Entity     -> [whamlet|<mi>entity|]
+    DWN.Bot        -> [whamlet|<mi>&bot;|]
+    DWN.Nat    -> [whamlet|<mi>N|]
+    DWN.Zero   -> [whamlet|<mi>0|]
+    DWN.Succ n -> [whamlet|
+      <mrow>
+        <mi>s
+        ^{widgetize n}
+        |]
+    DWN.Natrec n e f -> [whamlet|
+      <mrow>
+        <mi>natrec
+        <mo>(
+        ^{widgetize n}
+        <mo>,
+        ^{widgetize e}
+        <mo>,
+        ^{widgetize f}
+        <mo>)
+        |]
+    DWN.Eq a m n -> [whamlet|
+      <mrow>
+        ^{widgetize m}
+        <msub>
+          <mo>=
+          ^{widgetize a}
+        ^{widgetize n}
+        |]
+    DWN.Refl a m -> [whamlet|
+      <mrow>
+        <mi>refl
+        ^{widgetize a}
+        <mo>(
+        ^{widgetize m}
+        <mo>)
+        |]
+    DWN.Idpeel m n -> [whamlet|
       <mrow>
         <mi>idpeel
         <mo>(
