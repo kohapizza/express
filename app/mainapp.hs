@@ -26,15 +26,31 @@ import  qualified Sentence_process as SP
 import  qualified WidgetExpress as WE
 import  Control.Monad (forM_)           --base
 import  Control.Applicative
+import qualified DTS.NaturalLanguageInference as NLI
+import qualified Parser.ChartParser as CP
+import Parser.Language (jpOptions)
+import qualified Parser.Language.Japanese.Lexicon (lexicalResourceBuilder)
+import qualified System.IO as S
+import qualified Interface as I
+import Debug.Trace
+import ListT (ListT(..),fromFoldable,toList) --list-t
+import Data.List
 
 data App = App
   
   
 mkYesod "App" [parseRoutes|
 / HomeR GET
+/test2 Test2R GET
+/test TestR GET
 /jsem/#String JsemR GET
 /input InputR GET
 /chart/#String/#Int/#Int/#Int ChartR GET
+/diagram/#String/#Int DiagramR GET
+/jsemMenu JSeMMenuR GET
+/parsingMenu ParsingMenuR GET
+/parsing ParsingR GET
+/chartParsingMenu ChartParsingMenuR GET
 /error ErrorR GET
 /not-found NotFoundR GET
 |]
