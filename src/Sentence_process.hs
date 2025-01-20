@@ -18,6 +18,8 @@ module Sentence_process (
    maybe_nodes2nodes,
    expressCat,
    expressDtrs,
+   expressSem,
+   expressSig,
    expressScore,
    stlist2string,
    scorelist2string,
@@ -155,6 +157,17 @@ expressDtrs ccgnodes = case ccgnodes of
    nodes -> let one = head nodes
                     in show $ CCG.daughters one
 
+expressSem ::  [CCG.Node] ->  String
+expressSem ccgnodes = case ccgnodes of
+   [] -> "Node_is_empty!"
+   nodes -> let one = head nodes
+                    in show $ CCG.sem one
+
+expressSig ::  [CCG.Node] ->  String
+expressSig ccgnodes = case ccgnodes of
+   [] -> "Node_is_empty!"
+   nodes -> let one = head nodes
+                    in show $ CCG.sig one
 
 expressScore ::  [CCG.Node] -> StrictT.Text
 expressScore ccgnodes = case ccgnodes of
