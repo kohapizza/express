@@ -1,7 +1,7 @@
 # README
 ## What is this repository for?
 
-* *express* is the development environment for the Japanese automatic　inference system [lightblue](https://github.com/DaisukeBekki/lightblue)
+* *express* is the development environment for the Japanese automatic inference system [lightblue](https://github.com/DaisukeBekki/lightblue)
 * Copyright owner: Koharu Saeki and Bekki Laboratory
 
 ## Installing express
