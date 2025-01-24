@@ -1,38 +1,38 @@
 name:    express
-version: "0.0.0"
+version: "0.4.0"
 
+# Dependencies applicable to all components:
 dependencies:
-
-- base >=4.12 && <5
-- yesod >=1.6 && <1.7
-- yesod-core >=1.6 && <1.7
-- yesod-auth >=1.6 && <1.7
-- yesod-static >=1.6 && <1.7
-- yesod-form >=1.6 && <1.7
-- classy-prelude >=1.5 && <1.6
-- classy-prelude-conduit >=1.5 && <1.6
-- classy-prelude-yesod >=1.5 && <1.6
-- bytestring >=0.10 && <0.11
-- text >=0.11 && <2.0
-- persistent >=2.9 && <2.11
-- persistent-sqlite >=2.9 && <2.11
-- persistent-template >=2.5 && <2.9
+- base >=4.12 
+- yesod >=1.6
+- yesod-core >=1.6
+- yesod-auth >=1.6 
+- yesod-static >=1.6 
+- yesod-form >=1.6 
+- classy-prelude >=1.5
+- classy-prelude-conduit >=1.5
+- classy-prelude-yesod >=1.5
+- bytestring >=0.10 
+- text >=0.11 
+- persistent >=2.9 
+- persistent-sqlite >=2.9 
+- persistent-template >=2.5 
 - template-haskell
-- shakespeare >=2.0 && <2.1
-- hjsmin >=0.1 && <0.3
-- monad-control >=0.3 && <1.1
-- wai-extra >=3.0 && <3.1
-- yaml >=0.11 && <0.12
-- http-client-tls >=0.3 && <0.4
-- http-conduit >=2.3 && <2.4
-- directory >=1.1 && <1.4
-- warp >=3.0 && <3.4
+- shakespeare >=2.0
+- hjsmin >=0.1 
+- monad-control >=0.3
+- wai-extra >=3.0
+- yaml >=0.11
+- http-client-tls >=0.3 
+- http-conduit >=2.3 
+- directory >=1.1
+- warp >=3.0 
 - data-default
-- aeson >=1.4 && <1.5
-- conduit >=1.0 && <2.0
-- monad-logger >=0.3 && <0.4
-- fast-logger >=2.2 && <3.1
-- wai-logger >=2.2 && <2.4
+- aeson >=1.4 
+- conduit >=1.0 
+- monad-logger >=0.3 
+- fast-logger >=2.2 
+- wai-logger >=2.2 
 - file-embed
 - safe
 - unordered-containers
@@ -43,9 +43,12 @@ dependencies:
 - wai
 - foreign-store
 - lightblue
+- jsem >= 0.1.3
+- filepath >= 1.4
+- nlp-tools >= 0.2.0
+- list-t >= 1.0.0.0
 
-# The library contains all of our application code. The executable
-# defined below is just a thin wrapper.
+# The main (unnamed) library component of the package:
 library:
   source-dirs: src
   when:
@@ -62,35 +65,22 @@ library:
       - -fwarn-tabs
       - -O2
 
-# Runnable executable for our application
+# The executable components of the package:
 executables:
   express:
-    main: app.hs
+    main: mainapp.hs
     source-dirs: app
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    dependencies:
-    - express
-    when:
-    - condition: flag(library-only)
-      buildable: false
-  express2:
-    main: app2.hs
-    source-dirs: app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - express
-    - lightblue
+    dependencies: express
     when:
     - condition: flag(library-only)
       buildable: false
 
-# Test suite
+# The test suite components of the package.
+#Test suites have keys in common with executables:
 tests:
   express-test:
     main: Spec.hs

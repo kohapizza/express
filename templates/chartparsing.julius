@@ -1,0 +1,245 @@
+var scores = '';
+
+function express_chart(a,b,c,d,e){
+   sen_count = a;
+   sentence = b;
+   sbeam = c;
+   cats = d;
+   scores = e;
+   koushi(a,b);
+   //drawDiamondGrid(5, "これはサンプル文です");
+
+};
+
+var stage = new createjs.Stage("canvas");
+
+ 
+// マウスオーバーを有効にする
+//stage.enableMouseOver();
+
+var shapeList = [];
+var senList = [];
+var sent = '';
+var senStart = 0;
+var senEnd = 0;
+var nodesList = [];
+
+function koushi(count,sen) {
+                 //。を除いた文字数
+                 var st = count;
+                 //縦の長さ
+                 var height = st*200;
+                 //横の長さ
+                 var width = st*200;
+                 //文の先頭指定
+                 var a = count - 1;
+                 //文の先頭位置を戻す役割
+                 var flag = count - 1;
+                 //文の最後指定
+                 var t = count;
+                 var i = 0;
+
+                 //格子作る
+                 for(h = height; h > 0; h-=200){
+    	                for (w = width; w > 0; w-=200) {
+                            //格子の正方形作る
+    	                      var shape = new createjs.Shape();
+    	                      //外枠の色
+    	                      shape.graphics.beginStroke("darkorange");
+                              shape.graphics.beginFill("white");
+    	                      shape.graphics.beginFill("white");
+    	                      shape.graphics.setStrokeStyle(3);
+                            //正方形のサイズを200*200にする
+                              shape.graphics.drawRect(0,0,200,200);
+                              shape.x = w;
+                              shape.y = h;
+                              stage.addChild(shape);
+                              shapeList[i] = shape;
+                              //テキスト
+                              var sen_t = new createjs.Text("", "20px ＭＳ ゴシック", "black");
+                              //senを分ける
+                              //sen="私は人", a=2, t=3のとき、s=人
+                              var s = separate_sen(sen,a,t);
+                              sen_t.text = s;
+                              sen_t.x = w + 15;
+                              sen_t.y = h + 30;
+                              //syntactic categoryを表示
+                              expressCat(i);
+                              //expressScore(i);
+                              stage.addChild(sen_t); 
+                              shape.addEventListener("click",handleClick);
+                              senList.push({sentence:s,start:a,end:t});
+                              a--;
+                              i++;
+                             }
+                      //wじゃなくてwidthを減らしていることに注意！
+                      width -= 200;
+                      //人をもう含めないように、最後の文字を変える
+                      t--;
+                      //先頭位置をひとつ前に持ってくる
+                      flag--;
+                      a = flag;
+                }
+                //描画内容をキャンバスに反映する
+                stage.update();
+};
+
+
+function expressCat(i){
+      //html_catsをスペースごとで分けてそれぞれを格納したリスト
+      var cat = separate_space(cats);
+      if (cat[i] == "Node_is_empty!") {
+                var sen_cat = new createjs.Text("", "italic 18px Arial", "gray");
+      } else {
+               var sen_cat = new createjs.Text("", "italic 15px Arial", "black");
+      }
+      sen_cat.text = cat[i];
+      sen_cat.x = w + 10;
+      sen_cat.y = h + 80;
+      stage.addChild(sen_cat);
+};
+
+
+function expressCat(i) {
+    // html_catsをスペースごとに分割してそれぞれを格納したリスト
+    var cat = separate_space(cats);
+
+    // 表示するテキストを取得
+    var textContent = cat[i];
+    if (textContent === "Node_is_empty!") {
+        var fontStyle = "italic 18px Arial";
+        var fontColor = "gray";
+    } else {
+        var fontStyle = "italic 15px Arial";
+        var fontColor = "black";
+    }
+
+    // テキストを30文字ごとに分割
+    var lines = [];
+    while (textContent.length > 0) {
+        lines.push(textContent.slice(0, 20));
+        textContent = textContent.slice(20);
+    }
+
+    // 各行を表示
+    for (var j = 0; j < lines.length; j++) {
+        var sen_cat = new createjs.Text(lines[j], fontStyle, fontColor);
+        sen_cat.x = w + 10; // X座標
+        sen_cat.y = h + 80 + j * 20; // Y座標を行ごとに下げる
+        stage.addChild(sen_cat);
+    }
+};
+
+
+function expressScore(i){
+       var sen_score = new createjs.Text("", "italic 15px Arial", "gray");
+       var score = separate_space(scores);
+       sen_score.text = "score : " + score[i];
+       sen_score.x = w + 15;
+       sen_score.y = h + 200;
+       stage.addChild(sen_score);
+       console.log(sen_score);
+};
+
+//文を分ける
+//sen : 対象となる文字列
+//h : 切り出しの開始位置
+//t : 切り出しの終了位置（t のインデックスの前まで）
+//var result = separate_sen("こんにちは、世界！", 0, 5);
+//console.log(result); // 出力: "こんにちは"
+function separate_sen(sen,h,t){
+      var result = sen.substring(h,t)
+      return result
+};
+
+
+//文字列から(' ')を取り、文字列リストにする
+function separate_space(str){
+    var ary = cats.split(' ')
+    return ary
+};
+
+function handleClick(event){
+    var shape = event.currentTarget;
+    for(var i = 0; i < shapeList.length ; i++){
+              if(shapeList[i] == shape){
+                   senStart = senList[i].start;
+                   senEnd = senList[i].end;
+                   console.log(senStart, senEnd, "http://localhost:3000/chart/" + sentence + "/" + sbeam + "/" + senStart + "/" + senEnd);
+                   console.log(separate_space(cats));
+                   console.log(separate_space(scores));
+                   //console.log(senList);
+                   let option = 'width=1100,height=600,left=300,top=300';
+                   //ここでgetChartR funtionが実行される
+                   window.open("http://localhost:3000/chart/" + sentence + "/" + sbeam + "/" + senStart + "/" + senEnd, "mywindow",option);
+                 }
+     }
+};
+  
+createjs.Ticker.addEventListener("tick", handleTick);
+function handleTick(event){
+   for(var i = 0; i < shapeList.length; i++){
+           var point = shapeList[i].globalToLocal(stage.mouseX, stage.mouseY);
+           var isHit = shapeList[i].hitTest(point.x, point.y);
+            //ドットと図形重なるかどうか判定
+             if(isHit == true){
+                           shapeList[i].graphics
+                                   .clear()
+                                   .beginFill("yellow")
+                                   .beginStroke("002b5c")
+    	                           .setStrokeStyle(3)
+                                   .drawRect(0,0,200,200);
+                           
+               }else{        
+                            shapeList[i].graphics
+                                    .clear()
+                                    .beginFill("white")
+                                    .beginStroke("002b5c")
+    	                            .setStrokeStyle(3)
+                                    .drawRect(0,0,200,200);
+               }
+     }
+    stage.update();
+};
+
+
+
+
+
+var size = 50; // 菱形の中心から頂点までの距離
+var offsetX = size; // 水平方向のオフセット
+var offsetY = size; // 垂直方向のオフセット
+
+function drawDiamond(x, y, color = "white") {
+    // 菱形を描画
+    var shape = new createjs.Shape();
+    shape.graphics
+        .beginStroke("#0067C0") // 外枠の色
+        .setStrokeStyle(3) // 枠の太さ
+        .beginFill(color) // 塗りつぶしの色
+        .moveTo(x, y - size) // 上の頂点
+        .lineTo(x + size, y) // 右の頂点
+        .lineTo(x, y + size) // 下の頂点
+        .lineTo(x - size, y) // 左の頂点
+        .closePath(); // パスを閉じる
+    stage.addChild(shape);
+    return shape;
+}
+
+function drawDiamondGrid(rows, sentence) {
+    var width = rows; // 最大行数を設定
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col <= row; col++) {
+            const x = stage.canvas.width / 2 - row * offsetX + offsetX * 2 * col;
+            const y = stage.canvas.height / 2 + row * offsetY;
+            const shape = drawDiamond(x, y); // 菱形を描画
+            shapeList.push(shape);
+            // 文情報の設定（必要ならここで設定）
+            const s = sentence.substring(row, col + 1); // 適当な分割ロジック（カスタマイズ可）
+            senList.push({ sentence: s, start: row, end: col });
+            // イベントリスナー
+            shape.addEventListener("click", handleClick);
+        }
+    }
+    stage.update();
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>HelloTechAcademy</title>
+    <script src="test2.js"></script>
+    <link rel="stylesheet" href="sample.css">
+  </head>
+  <body>
+    <!-- 表示されてる -->
+    <button type="button" id="category_A" onclick="show('A','B')"> - </button>
+    <div id="layer_A" style="display: block" class="open">
+      <table border="1" rules="rows" frame="void" cellpadding="5">
+      <tr>
+        <td>John</td>
+        <td>runs</td>
+      </tr>
+      <tr>
+        <td>NP</td>
+        <td>S¥NP</td>
+      </tr>
+      <tr class=denom>
+        <td colspan="3" align="center">S</td>
+      </tr>
+    </table>
+    </div>
+    <!-- 押すと展開する -->
+    <!-- <button type="button" id="category_B" onclick="show('B')"> + </button> -->
+    <div id="layer_B" style="display: none" class="close">
+      <table border="1" rules="rows" frame="void" cellpadding="5">
+      <tr class=numer>
+        <td>
+        John
+        </td>
+        <td>
+        runs
+        </td>
+      </tr>
+      <tr class=denom>
+        <td colspan="3" align="center">S</td>
+      </tr>
+    </table>
+    </div>
+  </body>
+</html>
