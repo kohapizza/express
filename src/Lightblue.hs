@@ -107,8 +107,8 @@ parse :: Int           -- ^ The beam width
           -> T.Text        -- ^ A sentence to be parsed
           -> IO CP.Chart   -- ^ The resulting CYK-chart
 parse beam sentence = do
-    useOnlybeamParseSetting <- defaultParseSetting' beam
-    chart <- CP.parse useOnlybeamParseSetting sentence 
+    useOnlybeamParseSetting <- trace ("useOnlybeamParseSetting") defaultParseSetting' beam
+    chart <- trace ("chart") CP.parse useOnlybeamParseSetting sentence 
     return chart
 
 -- beamとsentenceを用いてParseResult取り出す

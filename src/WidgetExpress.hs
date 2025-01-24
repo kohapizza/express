@@ -90,7 +90,7 @@ instance Widgetizable Node where
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
                         <tr class="semhide">
                           <td>
-                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ node}
+                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
               <div id=#{StrictT.concat [id, "layerB"]} style="display: block" class="open">
                 <table border="2" rules="rows" cellpadding="5" border="3px solid #808080">
                   <tr>

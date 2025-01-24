@@ -35,6 +35,7 @@ import qualified Interface as I
 import Debug.Trace
 import ListT (ListT(..),fromFoldable,toList) --list-t
 import Data.List
+import Debug.Trace
 
 data App = App
   
@@ -394,12 +395,12 @@ getChartR sentences beams senS senE = do
     -- T.pack : String -> Text
      let lazytext_sen = T.pack $ sentences
      -- chart :: CP.Chart
-     let chart = unsafePerformIO $ L.parse beams lazytext_sen
+     let chart = trace ("getChartR") unsafePerformIO $ L.parse beams lazytext_sen
      -- maybe_nodes : Maybe [CCG.Node]
      -- (senS, senE)に対応する[CCG.Node]を取り出す
-     let maybe_nodes = Map.lookup (senS,senE) chart
+     let maybe_nodes = trace ("maybe_nodes") Map.lookup (senS,senE) chart
     -- maybe_nodes2nodes :: Maybe [CCG.Node] -> [CCG.Node]
-     let nodes = SP.maybe_nodes2nodes maybe_nodes    
+     let nodes = trace ("nodes") SP.maybe_nodes2nodes maybe_nodes    
      defaultLayout $ do
         addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
         [whamlet|
