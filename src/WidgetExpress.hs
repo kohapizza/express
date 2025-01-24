@@ -674,7 +674,6 @@ instance Widgetizable DWN.Signature where
              <mo>,
      |]
 
--- こっちを使う
 -- type Context = [(VarName, Preterm)]
 instance Widgetizable DWN.Context where
   widgetize context = 
