@@ -21,13 +21,14 @@ import  Parser.CCG (Node(..),RuleSymbol(..),Cat(..),isBaseCategory,Feature(..),F
 import qualified DTS.DTTdeBruijn as DTT
 import qualified DTS.DTTwithName as DWN
 import qualified DTS.UDTTdeBruijn as UDTT
+import  qualified DTS.UDTTwithName as UDWN
 import qualified DTS.Index as Index
 import  qualified DTS.Index as UDID
-import  qualified DTS.UDTTwithName as UDWN
 import qualified DTS.QueryTypes as QT
-import  Control.Monad (forM_)           --base
+import  Control.Monad (forM_)
 import  Control.Applicative
 import  qualified Text.Julius as J
+import Interface.Tree
 
 
 -- Widgetizableクラスを定義、widgetizeという関数を持つ
@@ -44,7 +45,7 @@ instance Widgetizable T.Text where
 -- WidgetizableクラスのインスタンスにNode型を定義
 instance Widgetizable Node where
   -- 子ノードなかったら
-  widgetize node = case daughters node of
+  widgetize node = case Parser.CCG.daughters node of
     [] -> do
       -- newIdent 関数で一意のidを得る
       id <- newIdent
@@ -55,7 +56,7 @@ instance Widgetizable Node where
               <table border="1" rules="rows" frame="void" cellpadding="2">
                 <!-- Nodeの音韻表示 -->
                 <tr>
-                  <td align="center" bgcolor="#ffd700">#{pf node}
+                  <td align="center" bgcolor="#002b5c" style="color: #ffffff;">#{pf node}
                 <tr>
                   <td align="center">
                     <table border="0" cellpadding="0">
@@ -63,7 +64,7 @@ instance Widgetizable Node where
                         <td align="center">
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
                       <tr class="semhide">
-                        <td align="center">
+                        <td>
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
               <span>LEX
@@ -88,12 +89,12 @@ instance Widgetizable Node where
                           <td align="center">
                             <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
                         <tr class="semhide">
-                          <td align="center">
-                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
+                          <td>
+                            <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ node}
               <div id=#{StrictT.concat [id, "layerB"]} style="display: block" class="open">
                 <table border="2" rules="rows" cellpadding="5" border="3px solid #808080">
                   <tr>
-                    <td bgcolor="#ffd700">^{widgetize $ pf node}
+                    <td align="center" bgcolor="#002b5c" style="color: #ffffff;">^{widgetize $ pf node}
                   <tr>
                     <td align="center" colspan=#{len}>
                       <table border="0" cellpadding="0">
@@ -111,11 +112,9 @@ instance Widgetizable Node where
                   <span>^{widgetize $ rs node}
         |]
 
-
 -- toText :: a -> Text
 instance Widgetizable RuleSymbol where
   widgetize rs = [whamlet|#{toText rs}|]
-
 
 instance Widgetizable Cat where
   widgetize category = case category of
@@ -211,7 +210,6 @@ pmf2MathML label pmf = case (label,pmf) of
 instance Widgetizable UDTT.Preterm where
   widgetize = widgetize . (UDWN.fromDeBruijn [])
 
--- 変えなくていいはず。
 instance Widgetizable UDWN.VarName where
   widgetize (UDWN.VarName v i) =
     [whamlet|
@@ -291,18 +289,18 @@ instance Widgetizable UDWN.Preterm where
         <mo>)
         |]
     UDWN.Sigma vname a b -> case b of 
-      UDWN.Top -> widgetize  a
+      UDWN.Top -> widgetize a
       _   -> [whamlet|
         <mrow>
           <mo>[
           <mtable>
-            <mtr>
+            <mtr style="text-align: left;">
               <mtd columnalign="left">
                 <mrow>
                   ^{widgetize vname}
                   <mo>:
                   ^{widgetize a}
-            <mtr>
+            <mtr style="text-align: left;">
               <mtd columnalign="left">
                 <mpadded height='-0.5em'>^{widgetize b}
           <mo>]
@@ -434,7 +432,7 @@ instance Widgetizable DWN.VarName where
         <mn>#{T.pack (show i)}
         |]
 
--- 後で要対応 DWN: DTS.DTTwithName　とりあえず
+
 instance Widgetizable DWN.Preterm where
   widgetize preterm = case preterm of
     DWN.Var vname -> widgetize vname
@@ -453,7 +451,7 @@ instance Widgetizable DWN.Preterm where
         |]
     DWN.Not a -> [whamlet|
       <mrow>
-        <mo>&not;
+        <mi>&not;
         <mi>toMathML a
         |]
     DWN.Sigma vname a b -> case b of 
@@ -614,3 +612,199 @@ instance Widgetizable DWN.Preterm where
         ^{widgetize n}
         <mo>)
         |]
+
+instance Widgetizable QT.DTTrule where
+  widgetize rule = case rule of
+    QT.Var -> [whamlet| <mi>#{toText QT.Var}|]
+    QT.Con -> [whamlet| <mi>#{toText QT.Con}|]
+    QT.TypeF -> [whamlet| <mi>#{toText QT.TypeF}|]
+    QT.Conv -> [whamlet| <mi>#{toText QT.Conv}|]
+    QT.WK -> [whamlet| <mi>#{toText QT.WK}|]
+    QT.PiF -> [whamlet| <mi>ΠF|]
+    QT.PiI -> [whamlet| <mi>ΠI|]
+    QT.PiE -> [whamlet| <mi>ΠE|]
+    QT.SigmaF -> [whamlet| <mi>ΣF|]
+    QT.SigmaI -> [whamlet| <mi>ΣI|]
+    QT.SigmaE ->[whamlet| <mi>ΣE|]
+    QT.DisjF -> [whamlet| <mi>+F|]
+    QT.DisjI -> [whamlet| <mi>+I|]
+    QT.DisjE -> [whamlet| <mi>+E|]
+    QT.EnumF ->[whamlet| <mi>{}F|]
+    QT.EnumI -> [whamlet| <mi>{}I|]
+    QT.EnumE -> [whamlet| <mi>{}E|]
+    QT.IqF -> [whamlet| <mi>=F|]
+    QT.IqI ->[whamlet| <mi>=I|]
+    QT.IqE -> [whamlet| <mi>=E|]
+    QT.NatF ->[whamlet| <mi>NatF|]
+    QT.NatI ->[whamlet| <mi>NatI|]
+    QT.NatE ->[whamlet| <mi>NatE|]
+
+-- type Signature = [(T.Text, Preterm)]
+instance Widgetizable DTT.Signature where
+  widgetize signature = 
+    let reversedItems = reverse signature
+        itemsWithFlags = case reversedItems of
+          [] -> []
+          _  -> zip reversedItems (repeat False) ++ [(last reversedItems, True)]
+    in [whamlet|
+       <mrow>
+         $forall ((nm, tm), isLast) <- itemsWithFlags
+           <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize nm}
+           <mo>:
+           <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize tm}
+           $if not isLast
+             <mo>,
+     |]
+
+-- type Signature = [(T.Text, Preterm)]
+instance Widgetizable DWN.Signature where
+  widgetize signature = 
+    let reversedItems = reverse signature
+        itemsWithFlags = case reversedItems of
+          [] -> []
+          _  -> zip reversedItems (repeat False) ++ [(last reversedItems, True)]
+    in [whamlet|
+       <math xmlns="http://www.w3.org/1998/Math/MathML">
+       <mrow>
+         $forall ((nm, tm), isLast) <- itemsWithFlags
+           <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize nm}
+           <mo>:
+           <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize tm}
+           $if not isLast
+             <mo>,
+     |]
+
+-- こっちを使う
+-- type Context = [(VarName, Preterm)]
+instance Widgetizable DWN.Context where
+  widgetize context = 
+    let reversedItems = reverse context
+        itemsWithFlags = case reversedItems of
+          [] -> []
+          _  -> zip (init reversedItems) (repeat False) ++ [(last reversedItems, True)]
+    in [whamlet|
+         <math xmlns="http://www.w3.org/1998/Math/MathML">
+           <mrow>
+             $forall ((nm, tm), isLast) <- itemsWithFlags
+               <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize nm}
+               <mo>:
+               <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize tm}
+               $if not isLast
+                 <mo>,
+      |]
+
+
+-- type Context = [Preterm]
+instance Widgetizable DTT.Context where
+  widgetize context = 
+    let reversedItems = reverse context
+        itemsWithFlags = case reversedItems of
+          [] -> []
+          _ -> zip reversedItems (repeat False) ++ [(last reversedItems, True)]
+    in [whamlet|
+         <math xmlns="http://www.w3.org/1998/Math/MathML">
+           <mrow>
+             $forall (cotx, isLast) <- itemsWithFlags
+               <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize cotx}
+               $if not isLast
+                 <mo>,
+       |]
+
+-- 
+instance Widgetizable DTT.Judgment where 
+  widgetize (DTT.Judgment sig cxt trm typ) =
+    [whamlet|
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mrow>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize cxt}
+          <mo>&vdash;
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize trm}
+          <mo>:
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize typ}
+    |]
+
+instance Widgetizable UDWN.Judgment where
+  widgetize (UDWN.Judgment sig cxt trm typ) = 
+    [whamlet|
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mrow>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize cxt}
+          <mo>&vdash;
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize trm}
+          <mo>:
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize typ}
+    |]
+
+instance Widgetizable DWN.Judgment where
+  widgetize (DWN.Judgment sig cxt trm typ) = 
+    [whamlet|
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mrow>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize cxt}
+          <mo>&vdash;
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize trm}
+          <mo>:
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize typ}
+    |]
+
+-- node :: DTT.Judgment
+-- DWN.fromDeBruijnJudgment :: DTTdB.Judgment -> DWN.Judgment
+instance (Widgetizable r, a ~ DTT.Judgment) => Widgetizable (Tree r a) where
+  widgetize (Tree rule node dtrs) = case dtrs of
+    [] -> do
+      id <- newIdent
+      [whamlet|
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mstyle displaystyle="true">
+            <mfrac linethickness="medium">
+              <mrow>
+              <mrow>^{widgetize $ DWN.fromDeBruijnJudgment node}
+          <mstyle fontsize="0.8" color="Black">
+              <mo>(</mo>
+              <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize rule}
+              <mo>)</mo>
+      |]
+    dtrs -> do
+      let len = (length dtrs)*5
+      id <- newIdent
+      [whamlet|
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <table>
+            <tr valign="bottom">
+              <td valign="baseline">
+                <div id=#{StrictT.concat [id, "layerA"]} style="display: none" class="close">
+                  <table border="1" rules="rows" frame="void" cellpadding="2">
+                    <tr valign="bottom">
+                      $forall dtr <- dtrs
+                        <td align="center" valign="bottom">^{widgetize dtr}&nbsp;
+                    <tr>
+                      <td align="center" colspan=#{len}>
+                        <table border="0" cellpadding="0">
+                          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize $ DWN.fromDeBruijnJudgment node}
+                <div id=#{StrictT.concat [id, "layerB"]} style="display: block" border="2px solid #000" class="open">
+                  <table border="20" rules="rows" cellpadding="5" border="3px solid #808080">
+                    <tr align="center" colspan=#{len}>
+                      <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize $ DWN.fromDeBruijnJudgment node}
+              <td valign="baseline">
+                <table border="1" rules="rows" frame="void" cellpadding="5">
+                  <tr>
+                    <td>
+                      <mo>(</mo>
+                      <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize rule}
+                      <mo>)</mo>
+                    <td>
+                      <button type="button" class="btn-design" id=#{StrictT.concat [id, "button"]} onclick=toggle('#{id}')>+
+      |]
+
+
+instance Widgetizable UDTT.Judgment where 
+  widgetize (UDTT.Judgment sig cxt trm typ) = 
+    [whamlet|
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mrow>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize cxt}
+          <mo>&vdash;
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize trm}
+          <mo>:
+          <math xmlns="http://www.w3.org/1998/Math/MathML">^{widgetize typ}
+    |]
