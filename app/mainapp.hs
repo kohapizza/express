@@ -42,8 +42,7 @@ data App = App
   
 mkYesod "App" [parseRoutes|
 / HomeR GET
-/test TestR GET
-/jsem/#String JsemR GET
+/jsem/ JsemR GET
 /input InputR GET
 /chart/#String/#Int/#Int/#Int ChartR GET
 /diagram/#String/#Int DiagramR GET
@@ -68,8 +67,8 @@ instance Yesod App where
 instance RenderMessage App FormMessage where
    renderMessage _ _ = defaultFormMessage
 
-getTestR :: Handler Html
-getTestR = do
+getHomeR :: Handler Html
+getHomeR = do
      defaultLayout $ do
           addStylesheetRemote "https://fonts.googleapis.com/css2?family=Alumni+Sans+Pinstripe:ital@0;1&display=swap"
           addStylesheetRemote "https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
@@ -111,6 +110,10 @@ getJSeMMenuR = do
               <div class="title">JSeM
               <div class="description">
                 Enter JSeMID to display the Node of the hypotheses. If the inference is successful, you can also view the proof diagram.
+              <section class="parsingButton">
+                <form action=@{JsemR} > 
+                  <input name="jsem_id" type="text" class="parsing-input" placeholder="JSeM ID" required>
+                  <input type="submit" class="btn_parse" value="Parse!" />
           |]
           myDesign
           myFunction
@@ -233,41 +236,14 @@ getChartParsingMenuR = do
           myFunction
           toggleJS
 
-getHomeR :: Handler Html
-getHomeR = do
-  --(widget, enctype) <- generateFormPost personForm
-  defaultLayout $ do
-   [whamlet|
-      <header class="home_header">
-              <h2>日本語CCG ChartParser
-      <body class="home_body">
-               例文：私は花子だ。
-          <p>
-               (開始位置, 終了位置)
-          <p>
-               この例文の（0,1）は 「私」
-          <p>
-               この例文の（2,5）は「花子だ」
-          <div class="home_btn">
-             <form action=@{InputR}>
-                   入力文
-                   <input type=text name=sen>
-               <p>    
-                   beam
-                   <input type=string name=sen_b class="number_input">
-               <p>     
-                   <input type=submit value="Let's ChartParser !" class="input_submit">
-                  
-   |]
-   myDesign
-   myFunction
-   toggleJS
-
 -- 引数はjsem_id
 -- ここにproof search diagramも表示させたい
 -- つまり、discource :: [T.Text] をparseWithTypeCheckに渡して証明図を可視化
-getJsemR :: String -> Handler Html
-getJsemR var = do
+getJsemR :: Handler Html
+getJsemR = do
+  -- jsem_id :: StrictT.Text
+  jsem_id <- runInputGet $ ireq textField "jsem_id"
+  let var = StrictT.unpack jsem_id
    -- contentsはTest型
    -- jsemData :: [C.JSeMData]
    -- jsemSearch :: [C.JSeMData] -> String -> Test

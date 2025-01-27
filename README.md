@@ -29,7 +29,8 @@ $ stack build
 ```
 
 ## Running express
+do the following:
 ```
 $ stack run
 ```
-access localhost:3000 in your browser
+and access localhost:3000 in your browser
