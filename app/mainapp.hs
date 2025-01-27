@@ -42,7 +42,6 @@ data App = App
   
 mkYesod "App" [parseRoutes|
 / HomeR GET
-/test TestR GET
 /jsem/#String JsemR GET
 /input InputR GET
 /chart/#String/#Int/#Int/#Int ChartR GET
@@ -68,8 +67,8 @@ instance Yesod App where
 instance RenderMessage App FormMessage where
    renderMessage _ _ = defaultFormMessage
 
-getTestR :: Handler Html
-getTestR = do
+getHomeR :: Handler Html
+getHomeR = do
      defaultLayout $ do
           addStylesheetRemote "https://fonts.googleapis.com/css2?family=Alumni+Sans+Pinstripe:ital@0;1&display=swap"
           addStylesheetRemote "https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
@@ -232,36 +231,6 @@ getChartParsingMenuR = do
           myDesign
           myFunction
           toggleJS
-
-getHomeR :: Handler Html
-getHomeR = do
-  --(widget, enctype) <- generateFormPost personForm
-  defaultLayout $ do
-   [whamlet|
-      <header class="home_header">
-              <h2>日本語CCG ChartParser
-      <body class="home_body">
-               例文：私は花子だ。
-          <p>
-               (開始位置, 終了位置)
-          <p>
-               この例文の（0,1）は 「私」
-          <p>
-               この例文の（2,5）は「花子だ」
-          <div class="home_btn">
-             <form action=@{InputR}>
-                   入力文
-                   <input type=text name=sen>
-               <p>    
-                   beam
-                   <input type=string name=sen_b class="number_input">
-               <p>     
-                   <input type=submit value="Let's ChartParser !" class="input_submit">
-                  
-   |]
-   myDesign
-   myFunction
-   toggleJS
 
 -- 引数はjsem_id
 -- ここにproof search diagramも表示させたい
