@@ -48,8 +48,6 @@ data Test = Test{
 --Sentences : 入力文
 data InputSentences = InputSentences {
     input_Sentence :: StrictT.Text,
---    sen_start :: Int,
---    sen_end :: Int,
     sen_beam :: Int
 } deriving (Eq,Show)
 

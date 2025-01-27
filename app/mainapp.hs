@@ -42,7 +42,7 @@ data App = App
   
 mkYesod "App" [parseRoutes|
 / HomeR GET
-/jsem/#String JsemR GET
+/jsem/ JsemR GET
 /input InputR GET
 /chart/#String/#Int/#Int/#Int ChartR GET
 /diagram/#String/#Int DiagramR GET
@@ -110,6 +110,10 @@ getJSeMMenuR = do
               <div class="title">JSeM
               <div class="description">
                 Enter JSeMID to display the Node of the hypotheses. If the inference is successful, you can also view the proof diagram.
+              <section class="parsingButton">
+                <form action=@{JsemR} > 
+                  <input name="jsem_id" type="text" class="parsing-input" placeholder="JSeM ID" required>
+                  <input type="submit" class="btn_parse" value="Parse!" />
           |]
           myDesign
           myFunction
@@ -235,8 +239,11 @@ getChartParsingMenuR = do
 -- 引数はjsem_id
 -- ここにproof search diagramも表示させたい
 -- つまり、discource :: [T.Text] をparseWithTypeCheckに渡して証明図を可視化
-getJsemR :: String -> Handler Html
-getJsemR var = do
+getJsemR :: Handler Html
+getJsemR = do
+  -- jsem_id :: StrictT.Text
+  jsem_id <- runInputGet $ ireq textField "jsem_id"
+  let var = StrictT.unpack jsem_id
    -- contentsはTest型
    -- jsemData :: [C.JSeMData]
    -- jsemSearch :: [C.JSeMData] -> String -> Test
