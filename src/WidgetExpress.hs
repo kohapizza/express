@@ -293,7 +293,7 @@ instance Widgetizable UDWN.Preterm where
       _   -> [whamlet|
         <mrow>
           <mo>[
-          <mtable>
+          <mtable style="text-align: left;">
             <mtr style="text-align: left;">
               <mtd columnalign="left">
                 <mrow>
@@ -455,18 +455,18 @@ instance Widgetizable DWN.Preterm where
         <mi>toMathML a
         |]
     DWN.Sigma vname a b -> case b of 
-      DWN.Top -> widgetize  a
+      DWN.Top -> widgetize a
       _   -> [whamlet|
         <mrow>
           <mo>[
-          <mtable>
-            <mtr>
+          <mtable style="text-align: left;">
+            <mtr style="text-align: left";>
               <mtd columnalign="left">
                 <mrow>
                   ^{widgetize vname}
                   <mo>:
                   ^{widgetize a}
-            <mtr>
+            <mtr style="text-align: left";>
               <mtd columnalign="left">
                 <mpadded height='-0.5em'>^{widgetize b}
           <mo>]

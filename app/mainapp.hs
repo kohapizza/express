@@ -218,7 +218,6 @@ getParsingR = do
           toggleJS
           myDesign
 
-
 getChartParsingMenuR :: Handler Html
 getChartParsingMenuR = do
      defaultLayout $ do
