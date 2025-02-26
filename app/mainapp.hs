@@ -79,7 +79,8 @@ getHomeR = do
             <div class="container">
               <div class="title">What is express?
               <div class="description">
-                express is the development support tool for the Japanese inference system "lightblue". With express, you can parse sentences, perform natural language inference, and perform type checking.
+                express is the development support tool for the Japanese inference system "lightblue". 
+                <br> With express, you can parse sentences, perform natural language inference, and perform type checking.
               <div class="cards">
                 <a href=@{JSeMMenuR} class="card">
                   <h3>JSeM
@@ -109,7 +110,8 @@ getJSeMMenuR = do
             <div class="container">
               <div class="title">JSeM
               <div class="description">
-                Enter JSeMID to display the Node of the hypotheses. If the inference is successful, you can also view the proof diagram.
+                Enter JSeMID to display the Node of the hypotheses and the premise. 
+                <br>If the inference is successful, you can also view the proof diagram.
               <section class="parsingButton">
                 <form action=@{JsemR} > 
                   <input name="jsem_id" type="text" class="parsing-input" placeholder="JSeM ID" required>
@@ -268,21 +270,30 @@ getJsemR = do
        defaultLayout $ do
           [whamlet|
             <head>
-                <title> #{var}
+               <title> #{var}
             <header class="ccg_header">
-                <b>[#{var}]</b>
-                    <br>&ensp;answer : #{ans}
-                    $forall pr <- pre
-                        &ensp;premise : <span class="pre-under">#{pr}</span>
-                    <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
-            <body>
+              <div class="header-content">
+                <b>jsemID: [#{var}]</b>
+                <br>&ensp;answer : #{ans}
+                $forall pr <- pre
+                  &ensp;premise : <span class="pre-under">#{pr}</span>
+                  <br>&ensp;hypothesis : <span class="hy-under">#{hy}  
+          <body>
                 <main id="main">     
                   <input type="checkbox" id="cat-toggle"/>
                   <input type="checkbox" id="sem-toggle"/>
                   <label for="cat-toggle" id="catbtn"><b>&ensp;cat&ensp;&ensp;</b></label><br>
-                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label>            
-                      ^{mapM_ WE.widgetize $ ps}
-                      ^{mapM_ WE.widgetize $ take 1 m}
+                  <label for="sem-toggle" id="sembtn"><b>&ensp;sem&ensp;</b></label> 
+
+                  <div class="jsem-pre">
+                    <h1>Premise-Node
+                    <div class="jsem-pre-node">^{mapM_ WE.widgetize $ ps}
+                  <div class="jsem-hy">
+                    <h1>Hypothesis-Node
+                    <div class="jsem-hy-node">^{mapM_ WE.widgetize $ take 1 m}
+                  <div class="jsem-psd">
+                    <h1>Proof Search Diagram
+                    <p .error-message>⚠️ Proof Search Failed... ⚠️
           |]
           myDesign
           myFunction
