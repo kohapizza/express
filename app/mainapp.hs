@@ -174,33 +174,9 @@ getParsingR = do
                 <p>sentence: #{text_sen}
                 <br>beam: #{beam}
             <div class="container-tab">
-              <div class="parsing-checkbox">
-                Show: 
-                <div class="input input--checkbox">
-                  <label>
-                    <input type="checkbox" id="toggle-node" checked>
-                    <span class="input__box">
-                    <span>Node (
-                  <label>
-                    <input type="checkbox" id="toggle-sem" checked>
-                    <span class="input__box">
-                    <span>Sem
-                  <label>
-                    <input type="checkbox" id="toggle-cat" checked>
-                    <span class="input__box">
-                    <span>Cat )
-                  <label>
-                    <input type="checkbox" id="toggle-tcq" checked>
-                    <span class="input__box">
-                    <span>TypeCheckQuery
-                  <label>
-                    <input type="checkbox" id="toggle-tcd" checked>
-                    <span class="input__box">
-                    <span>TypeCheckDiagram
-
               <div .tab-wrap>
                 $forall (tabNum, node, tcq, tcdList, tabClass) <- Data.List.zip5 tabs nodes tcqs tcds tabClasses
-                  <input id="TAB-#{tabNum}" type="radio" name="TAB" class="tab-switch" checked>
+                  <input id="TAB-#{tabNum}" type="radio" name="TAB" class="tab-switch" :tabNum == 1:checked>
                   <label for="TAB-#{tabNum}" class=#{tabClass}>#{tabNum}
                   <div class="tab-content">
                     <div class="tab-node">
