@@ -45,7 +45,7 @@ dependencies:
 - lightblue
 - jsem >= 0.1.3
 - filepath >= 1.4
-- nlp-tools >= 0.2.0
+# - nlp-tools >= 0.2.0
 - list-t >= 1.0.0.0
 
 # The main (unnamed) library component of the package:
