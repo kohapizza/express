@@ -7,8 +7,8 @@ RUN apt-get update -y && apt-get install -y \
     libtinfo-dev libgmp-dev zlib1g-dev git curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Stack をインストール
-RUN curl -sSL https://get.haskellstack.org/ | sh
+# Stack をインストール（既存のバージョンがあっても上書き）
+RUN curl -sSL https://get.haskellstack.org/ | sh -s - -f
 
 WORKDIR /app
 
@@ -22,7 +22,8 @@ RUN stack exec -- hpack || true
 RUN stack update
 
 # 依存関係のインストール
-RUN stack setup && stack build --only-dependencies --jobs=1
+RUN stack setup
+RUN stack build --only-dependencies --jobs=1
 
 # アプリケーションのコードをコピー
 COPY . /app
