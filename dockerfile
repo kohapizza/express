@@ -1,5 +1,3 @@
-# 修正済み Dockerfile
-
 FROM haskell:8.10.7
 
 # 必要なパッケージをインストール
@@ -27,6 +25,15 @@ RUN stack build --only-dependencies --jobs=1
 
 # アプリケーションのコードをコピー
 COPY . /app
+
+# lightblue をクローン
+RUN git clone https://github.com/kohapizza/lightblue.git /app/lightblue
+
+# # Python + pip をインストール（Debianベース）
+# RUN apt-get update && apt-get install -y python3 python3-pip
+
+# # kwja をインストール
+# RUN pip3 install kwja
 
 # ビルド
 RUN stack build
