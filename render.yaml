@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: express
+    env: docker
+    repo: https://github.com/kohapizza/express
+    branch: main
+    plan: free
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
