@@ -29,14 +29,35 @@ COPY . /app
 # lightblue をクローン
 RUN git clone https://github.com/kohapizza/lightblue.git /app/lightblue
 
-# # Python + pip をインストール（Debianベース）
-# RUN apt-get update && apt-get install -y python3 python3-pip
+# 必要そうなものをinstall
+RUN apt-get update && apt-get install -y --no-install-recommends wget build-essential libreadline-dev \ 
+libncursesw5-dev libssl-dev libsqlite3-dev libgdbm-dev libbz2-dev liblzma-dev zlib1g-dev uuid-dev libffi-dev libdb-dev
 
-# # kwja をインストール
-# RUN pip3 install kwja
+# 任意バージョンのpython install
+RUN wget --no-check-certificate https://www.python.org/ftp/python/3.9.5/Python-3.9.5.tgz \
+&& tar -xf Python-3.9.5.tgz \
+&& cd Python-3.9.5 \
+&& ./configure --enable-optimizations\
+&& make \
+&& make install
+
+# サイズ削減のため不要なものは削除
+RUN apt-get autoremove -y
+
+# pip のインストール
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9
+
+# kwja 依存前に torch を指定バージョンで入れる
+RUN pip install torch==2.5.1 \
+ && pip install kwja
+
+RUN sed -i "1i import torch\nimport omegaconf\ntorch.serialization.add_safe_globals({'omegaconf.dictconfig.DictConfig': omegaconf.DictConfig})" \
+    /usr/local/lib/python3.9/site-packages/kwja/modules/base.py
 
 # ビルド
 RUN stack build
+
+ENV LIGHTBLUE=/app/lightblue/
 
 # 実行コマンドを設定
 CMD ["stack", "run"]
