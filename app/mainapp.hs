@@ -75,7 +75,8 @@ getHomeR = do
           addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
           [whamlet|
             <div class="header">
-              <h1>express
+              <h1>
+                <a href=@{HomeR} class="home-link">express
             <div class="container">
               <div class="title">What is express?
               <div class="description">
@@ -106,7 +107,9 @@ getJSeMMenuR = do
           addStylesheetRemote "https://fonts.googleapis.com/css2?family=Alumni+Sans+Pinstripe:ital@0;1&display=swap"
           [whamlet|
             <div class="header">
-              <h1>express
+              <h1>
+                <a href=@{HomeR} class="home-link">express
+              <a href=@{HomeR} class="homelink">
             <div class="container">
               <div class="title">JSeM
               <div class="description">
@@ -129,7 +132,9 @@ getParsingMenuR = do
           addScriptRemote "https://code.createjs.com/1.0.0/createjs.min.js"
           [whamlet|
             <div class="header">
-              <h1>express 
+              <h1>
+                <a href=@{HomeR} class="home-link">express
+              <a href=@{HomeR} class="homelink">
             <div class="container">
               <div class="title">Parsing
               <div class="description">
@@ -203,7 +208,9 @@ getChartParsingMenuR = do
           addStylesheetRemote "https://fonts.googleapis.com/css2?family=Audiowide&display=swap"
           [whamlet|
             <div class="header">
-              <h1>express
+              <h1>
+                <a href=@{HomeR} class="home-link">express
+
             <div class="container">
               <div class="title">Chart Parsing
               <div class="description">
