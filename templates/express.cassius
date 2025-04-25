@@ -206,7 +206,13 @@
             color: #666;
           a 
             text-decoration: none;  
-          
+          .home-link
+            color: #ffffff;
+            text-decoration: none;
+          .home-link:hover
+            color: white;
+
+
           
 
 
