@@ -61,9 +61,9 @@ instance Widgetizable Node where
                   <td align="center">
                     <table border="0" cellpadding="0">
                       <tr class="cathide">
-                        <td align="center">
+                        <td align="center" class="cat">
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
-                      <tr class="semhide">
+                      <tr class="semhide" class="sem">
                         <td>
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ sem node}
             <td valign="baseline">
