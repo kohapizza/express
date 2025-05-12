@@ -75,6 +75,7 @@
             display: none;
           .cathide
             display: block;
+            color: blue;
           #cat-toggle:checked ~ * .cathide
             display: none;      
 
@@ -110,6 +111,7 @@
             display: none;
           .semhide
             display: block;
+            color: green;
           #sem-toggle:checked ~ * .semhide
             display: none;
           #sembtn
@@ -398,3 +400,18 @@
           
           .chartexpress
             padding: 30px;
+
+          .semhide math mi
+            color: green;
+          .semhide math mn
+            color: green;
+          .semhide math mo
+            color: green;
+          .semhide math mrow
+            color: green;
+          .semhide math msub
+            color: green;
+          .semhide math msup
+            color: green;
+          .semhide math mfrac
+            color: green;
