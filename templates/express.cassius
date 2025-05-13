@@ -75,7 +75,6 @@
             display: none;
           .cathide
             display: block;
-            color: blue;
           #cat-toggle:checked ~ * .cathide
             display: none;      
 
