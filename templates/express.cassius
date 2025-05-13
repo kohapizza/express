@@ -399,3 +399,9 @@
           
           .chartexpress
             padding: 30px;
+
+          .cathide
+            color: red
+
+          .sf
+            color: green
