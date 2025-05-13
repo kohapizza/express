@@ -61,7 +61,7 @@ instance Widgetizable Node where
                   <td align="center">
                     <table border="0" cellpadding="0">
                       <tr class="cathide">
-                        <td align="center" class="cat">
+                        <td align="center">
                           <math xmlns='http://www.w3.org/1998/Math/MathML'>^{widgetize $ cat node}
                       <tr class="semhide">
                         <td>
