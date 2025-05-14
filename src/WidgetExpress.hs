@@ -143,23 +143,23 @@ instance Widgetizable Cat where
                              <mi>S
                              <mstyle color='Purple'>
                                <mtable columnalign='left'>
-                                 <mtr>
+                                 <mtr class="sf">
                                    <mtd>^{widgetize pos}
-                                 <mtr>
+                                 <mtr class="sf">
                                    <mtd>
                                      <mpadded height='-0.5em'>^{widgetize conj}
-                                 <mtr>
+                                 <mtr class="sf">
                                    <mtd>
                                      <mpadded height='-0.5em'>^{widgetize pm}
                                  |]
     NP [cas]    -> [whamlet|<msub>
                               <mi>NP
-                              <mtext color='Purple'>^{widgetize cas}
+                              <mtext class="sf">^{widgetize cas}
                            |]
     Sbar [sf]   -> [whamlet|<msub>
                               <menclose notation='top'>
                                 <mi>S
-                              <mtext color='Purple'>^{widgetize sf}
+                              <mtext class="sf">^{widgetize sf}
                            |]
     N           -> [whamlet|<mi>N|]
     CONJ        -> [whamlet|<mi>CONJ|]
